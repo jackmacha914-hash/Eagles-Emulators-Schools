@@ -110,21 +110,21 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
-// Admin dashboard (explicit route)
+// Admin dashboard
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'index.html'));
 });
 
-// Safe catch-all for OTHER pages in /pages folder
+// Other pages
 app.get('/:page.html', (req, res) => {
-  res.sendFile(
-    path.join(pagesPath, `${req.params.page}.html`),
-    (err) => {
-      // fallback to homepage instead of login
+  const requestedPage = path.join(pagesPath, `${req.params.page}.html`);
+  res.sendFile(requestedPage, (err) => {
+    if (err) {
       res.sendFile(path.join(pagesPath, 'home.html'));
     }
-  );
+  });
 });
+
 
 // -------------------------
 // Start server
