@@ -96,30 +96,48 @@ app.use('/api/quizzes', require('./routes/quizRoutes'));
 app.use('/api/classes-alt', require('./routes/class')); // if this is different
 app.use('/api/health', require('./routes/health')); // keep this for health checks
 
+const path = require('path');
+
+// Set the correct path to your pages folder
+const pagesPath = path.join(__dirname, 'frontend_public', 'pages');
+
 // -------------------------
-// Frontend routes
+// FRONTEND ROUTES
 // -------------------------
 
-// Public homepage
+// 1️⃣ Public homepage
 app.get('/', (req, res) => {
   res.sendFile(path.join(pagesPath, 'home.html'));
 });
 
-// Login page
+// 2️⃣ Login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
-// Admin dashboard
+// 3️⃣ Admin dashboard (explicit route)
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'index.html'));
 });
 
-// Other pages
+// 4️⃣ Teacher dashboard (if exists)
+app.get('/teacher.html', (req, res) => {
+  res.sendFile(path.join(pagesPath, 'teacher.html'));
+});
+
+// 5️⃣ Student dashboard (if exists)
+app.get('/student.html', (req, res) => {
+  res.sendFile(path.join(pagesPath, 'student.html'));
+});
+
+// 6️⃣ Other public pages (about, gallery, etc.)
 app.get('/:page.html', (req, res) => {
   const requestedPage = path.join(pagesPath, `${req.params.page}.html`);
+
   res.sendFile(requestedPage, (err) => {
     if (err) {
+      console.error(`Page not found: ${req.params.page}.html`);
+      // Fallback to home.html
       res.sendFile(path.join(pagesPath, 'home.html'));
     }
   });
