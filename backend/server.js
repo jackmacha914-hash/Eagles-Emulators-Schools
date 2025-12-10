@@ -97,8 +97,6 @@ app.use('/api/classes-alt', require('./routes/class')); // if this is different
 app.use('/api/health', require('./routes/health')); // keep this for health checks
 
 
-// Set the correct path to your pages folder
-const pagesPath = path.join(__dirname, 'frontend_public', 'pages');
 
 // -------------------------
 // FRONTEND ROUTES
