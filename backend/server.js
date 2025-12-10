@@ -96,7 +96,6 @@ app.use('/api/quizzes', require('./routes/quizRoutes'));
 app.use('/api/classes-alt', require('./routes/class')); // if this is different
 app.use('/api/health', require('./routes/health')); // keep this for health checks
 
-const path = require('path');
 
 // Set the correct path to your pages folder
 const pagesPath = path.join(__dirname, 'frontend_public', 'pages');
