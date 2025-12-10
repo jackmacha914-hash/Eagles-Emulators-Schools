@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
+const path = require('path');       // ✅ only once
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -17,7 +17,7 @@ connectDB();
 // Global CORS – allow frontend domain
 // -------------------------
 app.use(cors({
-  origin: "https://eagles-emulators-schools.onrender.com", // frontend hosted domain
+  origin: "https://eagles-emulators-schools.onrender.com",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
@@ -41,17 +41,14 @@ app.use((req, res, next) => {
   });
   next();
 });
+
 // -------------------------
 // Serve uploaded files (resources, homeworks, etc.)
 // -------------------------
-const uploadsPath = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadsPath));
-
-// -------------------------
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // -------------------------
 // Static assets (frontend)
-// -------------------------
 const publicFrontendPath = path.join(__dirname, 'frontend_public');
 const pagesPath = path.join(publicFrontendPath, 'pages');
 
@@ -68,7 +65,6 @@ app.get('/favicon.ico', (req, res) => {
 
 // -------------------------
 // API routes
-// -------------------------
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/assignments', require('./routes/assignmentRoutes'));
 app.use('/api/grades', require('./routes/gradesRoutes'));
@@ -89,61 +85,52 @@ app.use('/api/reportcards', require('./routes/reportCardRoutes'));
 app.use('/api/teachers', require('./routes/teacherRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/fees', require('./routes/fees'));
-app.use('/api/grades', require('./routes/gradesRoutes'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/marks', require('./routes/marksRoutes'));
 app.use('/api/quizzes', require('./routes/quizRoutes'));
-app.use('/api/classes-alt', require('./routes/class')); // if this is different
-app.use('/api/health', require('./routes/health')); // keep this for health checks
-
-
+app.use('/api/health', require('./routes/health'));
 
 // -------------------------
 // FRONTEND ROUTES
-// -------------------------
 
-// 1️⃣ Public homepage
+// Public homepage
 app.get('/', (req, res) => {
   res.sendFile(path.join(pagesPath, 'home.html'));
 });
 
-// 2️⃣ Login page
+// Login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
-// 3️⃣ Admin dashboard (explicit route)
+// Admin dashboard
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'index.html'));
 });
 
-// 4️⃣ Teacher dashboard (if exists)
+// Teacher dashboard
 app.get('/teacher.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'teacher.html'));
 });
 
-// 5️⃣ Student dashboard (if exists)
+// Student dashboard
 app.get('/student.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'student.html'));
 });
 
-// 6️⃣ Other public pages (about, gallery, etc.)
+// Other public pages (about, gallery, etc.) — wildcard last
 app.get('/:page.html', (req, res) => {
   const requestedPage = path.join(pagesPath, `${req.params.page}.html`);
-
   res.sendFile(requestedPage, (err) => {
     if (err) {
       console.error(`Page not found: ${req.params.page}.html`);
-      // Fallback to home.html
-      res.sendFile(path.join(pagesPath, 'home.html'));
+      res.sendFile(path.join(pagesPath, 'home.html')); // fallback
     }
   });
 });
 
-
 // -------------------------
 // Start server
-// -------------------------
 const PORT = process.env.PORT || 5000;
 mongoose.connection.once('open', () => {
   app.listen(PORT, () => {
