@@ -107,6 +107,10 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(pagesPath, 'index.html'));
+});
+
 // Serve any other .html page if it exists in /pages
 app.get('/*.html', (req, res, next) => {
   const requestedPage = path.join(pagesPath, req.path);
