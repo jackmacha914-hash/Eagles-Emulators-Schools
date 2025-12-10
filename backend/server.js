@@ -99,27 +99,31 @@ app.use('/api/health', require('./routes/health')); // keep this for health chec
 // -------------------------
 // Frontend routes
 // -------------------------
+
+// Public homepage
 app.get('/', (req, res) => {
   res.sendFile(path.join(pagesPath, 'home.html'));
 });
 
+// Login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
+// Admin dashboard (explicit route)
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'index.html'));
 });
 
-// Serve any other .html page if it exists in /pages
-app.get('/*.html', (req, res, next) => {
-  const requestedPage = path.join(pagesPath, req.path);
-  res.sendFile(requestedPage, (err) => {
-    if (err) {
-      // If page not found, fallback to login
-      res.sendFile(path.join(pagesPath, 'login.html'));
+// Safe catch-all for OTHER pages in /pages folder
+app.get('/:page.html', (req, res) => {
+  res.sendFile(
+    path.join(pagesPath, `${req.params.page}.html`),
+    (err) => {
+      // fallback to homepage instead of login
+      res.sendFile(path.join(pagesPath, 'home.html'));
     }
-  });
+  );
 });
 
 // -------------------------
