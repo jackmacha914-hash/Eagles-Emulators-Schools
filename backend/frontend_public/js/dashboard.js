@@ -88,14 +88,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const classCountEl = document.getElementById('class-count');
         if (classCountEl) classCountEl.innerText = stats.classes || 0; // add classes if API has
 
-       const attendanceCountEl = document.getElementById('attendance-count');
-if (attendanceCountEl) {
-    const present = stats.attendance.present || 0;
-    const absent = stats.attendance.absent || 0;
-    const total = present + absent;
+       async function loadAttendanceStats() {
+    try {
+        const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/stats');
+        const stats = await res.json();
+        console.log('Attendance Stats:', stats.attendance);
 
-    // Display counts instead of percentage
-    attendanceCountEl.innerText = `${present} / ${total} present`;
+        const presentEl = document.getElementById('today-present');
+        const absentEl = document.getElementById('today-absent');
+        const presentBar = document.getElementById('present-percentage');
+        const absentBar = document.getElementById('absent-percentage');
+        const dateEl = document.getElementById('attendance-date');
+
+        const present = stats.attendance.present || 0;
+        const absent = stats.attendance.absent || 0;
+        const total = present + absent;
+
+        if (presentEl) presentEl.innerText = present;
+        if (absentEl) absentEl.innerText = absent;
+
+        // Set progress bar widths (avoid NaN if total is 0)
+        if (presentBar) presentBar.style.width = total ? `${(present / total) * 100}%` : '0%';
+        if (absentBar) absentBar.style.width = total ? `${(absent / total) * 100}%` : '0%';
+
+        if (dateEl) dateEl.innerText = `As of ${new Date().toLocaleDateString()}`;
+
+    } catch (err) {
+        console.error('Error loading attendance stats:', err);
+    }
 }
 
         // Fees
