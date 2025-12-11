@@ -1,7 +1,5 @@
-// routes/stats.js
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 
 // Models
 const User = require('../models/User');
@@ -11,60 +9,44 @@ const Attendance = require('../models/Attendance');
 const Book = require('../models/Book');
 const Fee = require('../models/Fee');
 
-// GET /api/stats
 router.get('/', async (req, res) => {
   try {
-    // Count students and teachers
-    const studentsCount = await User.countDocuments({ role: 'student' });
-    const teachersCount = await User.countDocuments({ role: 'teacher' });
+    const students = await User.countDocuments({ role: 'student' });
+    const teachers = await User.countDocuments({ role: 'teacher' });
+    const events = await Event.countDocuments();
+    const clubs = await Club.countDocuments();
 
-    // Count events
-    const eventsCount = await Event.countDocuments();
+    const present = await Attendance.countDocuments({ status: 'present' });
+    const absent = await Attendance.countDocuments({ status: 'absent' });
 
-    // Count clubs
-    const clubsCount = await Club.countDocuments();
+    const issued = await Book.countDocuments({ status: 'issued' });
 
-    // Attendance: Present and Absent
-    const presentCount = await Attendance.countDocuments({ status: 'present' });
-    const absentCount = await Attendance.countDocuments({ status: 'absent' });
-
-    // Library books issued
-    const issuedBooksCount = await Book.countDocuments({ status: 'issued' });
-
-    // Fees: total paid and balance
-    const fees = await Fee.aggregate([
+    const feesAgg = await Fee.aggregate([
       {
         $group: {
           _id: null,
-          totalPaid: { $sum: '$paidAmount' },
-          totalBalance: { $sum: '$balance' }
+          paid: { $sum: '$paidAmount' },
+          balance: { $sum: '$balance' }
         }
       }
     ]);
 
-    const totalPaid = fees[0]?.totalPaid || 0;
-    const totalBalance = fees[0]?.totalBalance || 0;
+    const paid = feesAgg[0]?.paid || 0;
+    const balance = feesAgg[0]?.balance || 0;
 
-    res.status(200).json({
-      students: studentsCount,
-      teachers: teachersCount,
-      events: eventsCount,
-      clubs: clubsCount,
-      attendance: {
-        present: presentCount,
-        absent: absentCount
-      },
-      library: {
-        issued: issuedBooksCount
-      },
-      fees: {
-        paid: totalPaid,
-        balance: totalBalance
-      }
+    res.json({
+      students,
+      teachers,
+      events,
+      clubs,
+      attendance: { present, absent },
+      library: { issued },
+      fees: { paid, balance }
     });
-  } catch (err) {
-    console.error('Error fetching stats:', err);
-    res.status(500).json({ message: 'Error fetching stats' });
+
+  } catch (error) {
+    console.error("Stats error:", error);
+    res.status(500).json({ error: "Failed to load stats" });
   }
 });
 
