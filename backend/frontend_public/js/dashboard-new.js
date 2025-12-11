@@ -485,23 +485,56 @@ const Dashboard = (() => {
     }
 
     // Load initial data
-    async function loadInitialData() {
-        try {
-            // Load dashboard stats
-            const { data: stats } = await dashboardApi.getQuickStats();
-            
-            // Update the UI with the fetched data
-            updateDashboardStats(stats);
-            
-            // Load recent activities
-            const { data: activities } = await dashboardApi.getRecentActivities();
-            updateRecentActivities(activities);
-            
-        } catch (error) {
-            console.error('Error loading initial data:', error);
-            showNotification('Failed to load dashboard data', 'error');
-        }
+async function loadInitialData() {
+    try {
+        // 🔵 Fetch Stats from your backend
+        const res = await fetch("https://eagles-emulators-schools.onrender.com/api/stats", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        const stats = await res.json();
+        console.log("Dashboard Stats:", stats);
+
+        updateDashboardStats({
+            totalStudents: stats.students || 0,
+            totalTeachers: stats.teachers || 0,
+            totalClasses: stats.clubs || 0, // clubs shown as classes? adjust if needed
+            attendanceRate: stats.attendance?.present || 0
+        });
+
+        // 🔵 Fetch Clubs
+        fetchClubsCount();
+
+    } catch (error) {
+        console.error("Error loading initial data:", error);
+        showNotification("Failed to load dashboard data", "error");
     }
+}
+
+    //
+
+    async function fetchClubsCount() {
+    try {
+        const res = await fetch("https://eagles-emulators-schools.onrender.com/api/clubs", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        const clubs = await res.json();
+        console.log("Clubs Loaded:", clubs);
+
+        const classCount = document.getElementById("class-count");
+        if (classCount) classCount.textContent = clubs.length;
+
+    } catch (err) {
+        console.error("Error fetching clubs:", err);
+    }
+}
+
     
     // Update dashboard statistics
     function updateDashboardStats(stats) {
