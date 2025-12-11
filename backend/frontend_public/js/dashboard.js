@@ -88,13 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const classCountEl = document.getElementById('class-count');
         if (classCountEl) classCountEl.innerText = stats.classes || 0; // add classes if API has
 
-        // Attendance (assuming you want percentage)
-        const attendanceEl = document.getElementById('attendance-count');
-        if (attendanceEl && stats.attendance) {
-            const total = stats.attendance.present + stats.attendance.absent;
-            const percent = total ? (stats.attendance.present / total) * 100 : 0;
-            attendanceEl.innerText = `${percent.toFixed(0)}%`;
-        }
+       const attendanceCountEl = document.getElementById('attendance-count');
+if (attendanceCountEl) {
+    const present = stats.attendance.present || 0;
+    const absent = stats.attendance.absent || 0;
+    const total = present + absent;
+
+    // Display counts instead of percentage
+    attendanceCountEl.innerText = `${present} / ${total} present`;
+}
 
         // Fees
         // Fees
