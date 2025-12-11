@@ -3,7 +3,6 @@ const express = require('express');
 const User = require('../models/User');
 const Event = require('../models/Event');
 const Attendance = require('../models/Attendance');
-const Library = require('../models/Library');
 const Club = require('../models/Club');
 const Fee = require('../models/Fee');
 
