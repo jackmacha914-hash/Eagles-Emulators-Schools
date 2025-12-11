@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
        async function loadAttendanceStats() {
     try {
-        const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/stats');
+        const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/attendance');
         const stats = await res.json();
         console.log('Attendance Stats:', stats.attendance);
 
