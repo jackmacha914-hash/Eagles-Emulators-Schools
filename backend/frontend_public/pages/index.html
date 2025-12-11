@@ -3661,11 +3661,8 @@ window.fetch = async (input, init = {}) => {
                 console.log('Fetching attendance for date:', today);
                 
                 // Fetch attendance data for today
-<<<<<<< HEAD
+
                 const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance/history?start=${today}&end=${today}`, {
-=======
-                const response = await fetch(`https://school-management-system-av07.onrender.com/api/attendance/history?start=${today}&end=${today}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -3809,11 +3806,8 @@ window.fetch = async (input, init = {}) => {
                 console.log('   - Using token:', token ? 'Found' : 'Not found');
                 console.log('   - Testing endpoint: /api/attendance/history');
                 
-<<<<<<< HEAD
+
                 const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance/history?start=${today}&end=${today}`, {
-=======
-                const response = await fetch(`https://school-management-system-av07.onrender.com/api/attendance/history?start=${today}&end=${today}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -3922,11 +3916,8 @@ window.fetch = async (input, init = {}) => {
                 console.log('Sending registration data:', userData);
 
                 // Use the correct registration endpoint
-<<<<<<< HEAD
+
                 const response = await fetch('https://eagles-emulators-schools.onrender.com/api/auth/register', {
-=======
-                const response = await fetch('https://school-management-system-av07.onrender.com/api/auth/register', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -4107,36 +4098,22 @@ window.fetch = async (input, init = {}) => {
     </div>
 
     <!-- API Configuration -->
-    <script>
-        // Set API configuration before loading other scripts
-        window.API_CONFIG = { 
-<<<<<<< HEAD
-            BASE_URL: 'https://eagles-emulators-schools.onrender.com',
-            API_BASE_URL: 'https://eagles-emulators-schools.onrender.com/api',
-            AUTH_URL: 'https://eagles-emulators-schools.onrender.com/api/auth',
-            STUDENTS_URL: 'https://eagles-emulators-schools.onrender.com/api/students',
-            TEACHERS_URL: 'https://eagles-emulators-schools.onrender.com/api/teachers',
-            ATTENDANCE_URL: 'https://eagles-emulators-schools.onrender.com/api/attendance',
-            FEES_URL: 'https://eagles-emulators-schools.onrender.com/api/fees',
-            PAYMENTS_URL: 'https://eagles-emulators-schools.onrender.com/api/payments',
-            CLASSES_URL: 'https://eagles-emulators-schools.onrender.com/api/classes',
-            CLUBS_URL: 'https://eagles-emulators-schools.onrender.com/api/clubs',
-            BOOKS_URL: 'https://eagles-emulators-schools.onrender.com/api/books'
-=======
-            BASE_URL: 'https://school-management-system-av07.onrender.com',
-            API_BASE_URL: 'https://school-management-system-av07.onrender.com/api',
-            AUTH_URL: 'https://school-management-system-av07.onrender.com/api/auth',
-            STUDENTS_URL: 'https://eagles-emulators-schools.onrender.com/api/students',
-            TEACHERS_URL: 'https://school-management-system-av07.onrender.com/api/teachers',
-            ATTENDANCE_URL: 'https://school-management-system-av07.onrender.com/api/attendance',
-            FEES_URL: 'https://school-management-system-av07.onrender.com/api/fees',
-            PAYMENTS_URL: 'https://school-management-system-av07.onrender.com/api/payments',
-            CLASSES_URL: 'https://school-management-system-av07.onrender.com/api/classes',
-            CLUBS_URL: 'https://school-management-system-av07.onrender.com/api/clubs',
-            BOOKS_URL: 'https://school-management-system-av07.onrender.com/api/books'
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
-        };
-    </script>
+   <script>
+    window.API_CONFIG = { 
+        BASE_URL: 'https://eagles-emulators-schools.onrender.com',
+        API_BASE_URL: 'https://eagles-emulators-schools.onrender.com/api',
+        AUTH_URL: 'https://eagles-emulators-schools.onrender.com/api/auth',
+        STUDENTS_URL: 'https://eagles-emulators-schools.onrender.com/api/students',
+        TEACHERS_URL: 'https://eagles-emulators-schools.onrender.com/api/teachers',
+        ATTENDANCE_URL: 'https://eagles-emulators-schools.onrender.com/api/attendance',
+        FEES_URL: 'https://eagles-emulators-schools.onrender.com/api/fees',
+        PAYMENTS_URL: 'https://eagles-emulators-schools.onrender.com/api/payments',
+        CLASSES_URL: 'https://eagles-emulators-schools.onrender.com/api/classes',
+        CLUBS_URL: 'https://eagles-emulators-schools.onrender.com/api/clubs',
+        BOOKS_URL: 'https://eagles-emulators-schools.onrender.com/api/books'
+    };
+</script>
+
     
     <!-- jQuery (required for Bootstrap modals) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -4191,24 +4168,18 @@ window.fetch = async (input, init = {}) => {
                 }
                 
                 console.log('Using class for attendance:', userClass);
-<<<<<<< HEAD
+
                 const url = `https://eagles-emulators-schools.onrender.com/api/attendance/history?class=${encodeURIComponent(userClass)}&start=${sevenDaysAgoStr}&end=${todayStr}`;
-=======
-                const url = `https://school-management-system-av07.onrender.com/api/attendance/history?class=${encodeURIComponent(userClass)}&start=${sevenDaysAgoStr}&end=${todayStr}`;
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
-                await fetchAndDisplayAttendance(url);
-            } else {
-                console.log('Admin user - fetching all classes first');
-                // First, get the list of all classes
-<<<<<<< HEAD
-                const classesResponse = await fetch('https://eagles-emulators-schools.onrender.com/api/classes', {
-=======
-                const classesResponse = await fetch('https://school-management-system-av07.onrender.com/api/classes', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+await fetchAndDisplayAttendance(url);
+} else {
+    console.log('Admin user - fetching all classes first');
+    // First, get the list of all classes
+    const classesResponse = await fetch('https://eagles-emulators-schools.onrender.com/api/classes', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
                 
                 if (!classesResponse.ok) {
                     throw new Error(`Failed to fetch classes: ${classesResponse.status} ${classesResponse.statusText}`);
@@ -4237,15 +4208,12 @@ window.fetch = async (input, init = {}) => {
                     
                     try {
                         // Try with the exact class name first
-<<<<<<< HEAD
                         let classResponse = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance/history?class=${encodeURIComponent(className)}&start=${sevenDaysAgoStr}&end=${todayStr}`, {
-=======
-                        let classResponse = await fetch(`https://school-management-system-av07.onrender.com/api/attendance/history?class=${encodeURIComponent(className)}&start=${sevenDaysAgoStr}&end=${todayStr}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            }
-                        });
+    headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+});
+
                         
                         if (classResponse.ok) {
                             const classData = await classResponse.json();
@@ -4272,11 +4240,8 @@ window.fetch = async (input, init = {}) => {
                     
                     for (const className of allClasses) {
                         try {
-<<<<<<< HEAD
+
                             const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance/history?class=${encodeURIComponent(className)}&start=${thirtyDaysAgoStr}&end=${todayStr}`, {
-=======
-                            const response = await fetch(`https://school-management-system-av07.onrender.com/api/attendance/history?class=${encodeURIComponent(className)}&start=${thirtyDaysAgoStr}&end=${todayStr}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                                 headers: {
                                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                                 }
@@ -4439,22 +4404,14 @@ window.fetch = async (input, init = {}) => {
             console.log('Fetching fees from API...');
             // Fetch all fees with student population to get expected fees
             const [feesResponse, paymentsResponse] = await Promise.all([
-<<<<<<< HEAD
                 fetch('https://eagles-emulators-schools.onrender.com/api/fees?populate=student', {
-=======
-                fetch('https://school-management-system-av07.onrender.com/api/fees?populate=student', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 }),
                 // Fetch payments data to calculate actual fees paid
-<<<<<<< HEAD
                 fetch('https://eagles-emulators-schools.onrender.com/api/payments?status=completed', {
-=======
-                fetch('https://school-management-system-av07.onrender.com/api/payments?status=completed', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -4589,11 +4546,7 @@ window.fetch = async (input, init = {}) => {
             }
             
             console.log('Fetching fees from API...');
-<<<<<<< HEAD
             const feesResponse = await fetch('https://eagles-emulators-schools.onrender.com/api/fees?populate=student', {
-=======
-            const feesResponse = await fetch('https://school-management-system-av07.onrender.com/api/fees?populate=student', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -4687,11 +4640,7 @@ window.fetch = async (input, init = {}) => {
             }
             
             console.log('Fetching clubs from API...');
-<<<<<<< HEAD
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/clubs', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/clubs', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -4778,11 +4727,7 @@ window.fetch = async (input, init = {}) => {
             }
             
             console.log('Fetching books from API...');
-<<<<<<< HEAD
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/library', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/library', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -4969,11 +4914,7 @@ window.fetch = async (input, init = {}) => {
             const token = localStorage.getItem('token');
             if (!token) return;
             
-<<<<<<< HEAD
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/auth/me', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/auth/me', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -4991,11 +4932,7 @@ window.fetch = async (input, init = {}) => {
     async function loadTotalFees() {
         try {
             const token = localStorage.getItem('token');
-<<<<<<< HEAD
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/fees', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/fees', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await response.json();
@@ -5077,11 +5014,8 @@ window.fetch = async (input, init = {}) => {
             // First try the count endpoint
             let response;
             try {
-<<<<<<< HEAD
+
                 response = await fetch('https://eagles-emulators-schools.onrender.com/api/teachers/count', {
-=======
-                response = await fetch('https://school-management-system-av07.onrender.com/api/teachers/count', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     method: 'GET',
                     headers: headers
                 });
@@ -5107,11 +5041,8 @@ window.fetch = async (input, init = {}) => {
             
             let teachersResponse;
             try {
-<<<<<<< HEAD
+
                 teachersResponse = await fetch('https://eagles-emulators-schools.onrender.com/api/teachers', {
-=======
-                teachersResponse = await fetch('https://school-management-system-av07.onrender.com/api/teachers', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                     method: 'GET',
                     headers: headers
                 });
@@ -5291,11 +5222,8 @@ window.fetch = async (input, init = {}) => {
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
             
             // Try to fetch books from the server
-<<<<<<< HEAD
+
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/books', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/books', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 method: 'GET',
                 headers: headers
             });
@@ -5396,11 +5324,8 @@ window.fetch = async (input, init = {}) => {
             console.log('Fetching attendance data for date:', todayFormatted);
             // Try to get today's attendance
             console.log(`Fetching attendance for date: ${todayFormatted}`);
-<<<<<<< HEAD
+
             const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance?date=${todayFormatted}`, {
-=======
-            const response = await fetch(`https://school-management-system-av07.onrender.com/api/attendance?date=${todayFormatted}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 method: 'GET',
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
@@ -5569,11 +5494,8 @@ window.fetch = async (input, init = {}) => {
             const token = localStorage.getItem('token');
             if (!token) return;
             
-<<<<<<< HEAD
+
             const response = await fetch('https://eagles-emulators-schools.onrender.com/api/fees/summary', {
-=======
-            const response = await fetch('https://school-management-system-av07.onrender.com/api/fees/summary', {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -5613,11 +5535,8 @@ window.fetch = async (input, init = {}) => {
             if (!token) return;
             
             const today = new Date().toISOString().split('T')[0];
-<<<<<<< HEAD
+
             const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/attendance/summary?date=${today}`, {
-=======
-            const response = await fetch(`https://school-management-system-av07.onrender.com/api/attendance/summary?date=${today}`, {
->>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -6173,6 +6092,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 </script>
+<script src="/js/dashboard-new.js"></script>
+
 
 
 </body>
