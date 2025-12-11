@@ -498,12 +498,18 @@ async function loadInitialData() {
         const stats = await res.json();
         console.log("Dashboard Stats:", stats);
 
-        updateDashboardStats({
-            totalStudents: stats.students || 0,
-            totalTeachers: stats.teachers || 0,
-            totalClasses: stats.clubs || 0, // clubs shown as classes? adjust if needed
-            attendanceRate: stats.attendance?.present || 0
-        });
+       updateDashboardStats({
+    totalStudents: stats.students || 0,
+    totalTeachers: stats.teachers || 0,
+    totalClasses: stats.clubs?.length || 0,    // number of clubs/classes
+    attendancePresent: stats.attendance?.present || 0,
+    attendanceAbsent: stats.attendance?.absent || 0,
+    totalBooks: stats.books?.total || 0,
+    issuedBooks: stats.books?.issued || 0,
+    totalFees: stats.fees?.total || 0,
+    feesPaid: stats.fees?.paid || 0,
+    feesBalance: stats.fees?.balance || 0
+});
 
         // 🔵 Fetch Clubs
         fetchClubsCount();
@@ -536,21 +542,42 @@ async function loadInitialData() {
 }
 
     
-    // Update dashboard statistics
     function updateDashboardStats(stats) {
-        if (!stats) return;
-        
-        // Update the stats cards
-        const studentCount = document.getElementById('student-count');
-        const teacherCount = document.getElementById('teacher-count');
-        const classCount = document.getElementById('class-count');
-        const attendanceCount = document.getElementById('attendance-count');
-        
-        if (studentCount) studentCount.textContent = stats.totalStudents.toLocaleString();
-        if (teacherCount) teacherCount.textContent = stats.totalTeachers.toLocaleString();
-        if (classCount) classCount.textContent = stats.totalClasses.toLocaleString();
-        if (attendanceCount) attendanceCount.textContent = `${stats.attendanceRate}%`;
-    }
+    if (!stats) return;
+
+    // Students
+    const studentCount = document.getElementById('student-count');
+    if (studentCount) studentCount.textContent = stats.totalStudents.toLocaleString();
+
+    // Teachers
+    const teacherCount = document.getElementById('teacher-count');
+    if (teacherCount) teacherCount.textContent = stats.totalTeachers.toLocaleString();
+
+    // Classes / Clubs
+    const classCount = document.getElementById('class-count');
+    if (classCount) classCount.textContent = stats.totalClasses.toLocaleString();
+
+    // Attendance
+    const attendancePresent = document.getElementById('attendance-present');
+    const attendanceAbsent = document.getElementById('attendance-absent');
+    if (attendancePresent) attendancePresent.textContent = stats.attendancePresent;
+    if (attendanceAbsent) attendanceAbsent.textContent = stats.attendanceAbsent;
+
+    // Library / Books
+    const totalBooks = document.getElementById('book-count');
+    const issuedBooks = document.getElementById('issued-books-count');
+    if (totalBooks) totalBooks.textContent = stats.totalBooks;
+    if (issuedBooks) issuedBooks.textContent = stats.issuedBooks;
+
+    // Fees
+    const totalFees = document.getElementById('fee-count');
+    const feesPaid = document.getElementById('fee-paid');
+    const feesBalance = document.getElementById('fee-balance');
+    if (totalFees) totalFees.textContent = stats.totalFees;
+    if (feesPaid) feesPaid.textContent = stats.feesPaid;
+    if (feesBalance) feesBalance.textContent = stats.feesBalance;
+}
+
     
     // Update recent activities
     function updateRecentActivities(activities) {
