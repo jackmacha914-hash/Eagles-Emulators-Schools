@@ -97,13 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Fees
-        const feeTotalEl = document.getElementById('totalFees');
-        const feePaidEl = document.getElementById('feesPaid');
-        const feeBalanceEl = document.getElementById('feesBalance');
+        // Fees
+const feeCountEl = document.getElementById('fee-count');
+const feePaidEl = document.getElementById('fee-paid');
+const feeBalanceEl = document.getElementById('fee-balance');
 
-        if (feeTotalEl) feeTotalEl.innerText = `Ksh ${(stats.fees.paid + stats.fees.balance).toLocaleString()}`;
-        if (feePaidEl) feePaidEl.innerText = `Paid: Ksh ${stats.fees.paid.toLocaleString()}`;
-        if (feeBalanceEl) feeBalanceEl.innerText = `Balance: Ksh ${stats.fees.balance.toLocaleString()}`;
+if (feeCountEl) feeCountEl.innerText = `Ksh ${(stats.fees.paid + stats.fees.balance).toLocaleString()}`;
+if (feePaidEl) feePaidEl.innerText = `Paid: Ksh ${stats.fees.paid.toLocaleString()}`;
+if (feeBalanceEl) feeBalanceEl.innerText = `Balance: Ksh ${stats.fees.balance.toLocaleString()}`;
 
         // Clubs
         const clubCountEl = document.getElementById('club-count');
