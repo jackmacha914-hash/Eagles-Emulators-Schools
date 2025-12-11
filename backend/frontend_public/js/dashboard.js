@@ -361,7 +361,7 @@ if (feeBalanceEl) feeBalanceEl.innerText = `Balance: Ksh ${stats.fees.balance.to
     // Fetch library books
     async function fetchBooks() {
         try {
-            const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/library/books');
+            const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/books');
             const books = await res.json();
 
             const bookList = document.getElementById('book-list');
