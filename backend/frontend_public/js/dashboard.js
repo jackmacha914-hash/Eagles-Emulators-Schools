@@ -134,42 +134,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 //fees
-    async function loadFeesStats() {
+   async function loadFeesStats() {
     try {
-        const res = await fetch("https://eagles-emulators-schools.onrender.com/api/accounts", {
-            headers: {
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            }
-        });
+        const response = await fetch("https://eagles-emulators-schools.onrender.com/api/fees");
+        const feesData = await response.json();
 
-        const fees = await res.json();
-        console.log("FEES DATA:", fees);
+        console.log("Fees API Response:", feesData);
 
-        if (!Array.isArray(fees)) return;
+        // If no fees exist, prevent errors
+        if (!Array.isArray(feesData) || feesData.length === 0) {
+            document.getElementById("totalFees").innerText = "Ksh 0";
+            document.getElementById("feesPaid").innerText = "Ksh 0";
+            document.getElementById("feesBalance").innerText = "Ksh 0";
+            return;
+        }
 
-        let totalFees = 0;
+        // 🔥 Calculate totals
+        let totalExpected = 0;
         let totalPaid = 0;
         let totalBalance = 0;
 
-        fees.forEach(item => {
-            totalFees += item.totalAmount || 0;
-            totalPaid += item.paidAmount || 0;
-            totalBalance += item.balance || 0;
+        feesData.forEach(f => {
+            totalExpected += Number(f.totalAmount || f.feesPerTerm || 0);
+            totalPaid += Number(f.paidAmount || 0);
+            totalBalance += Number(f.balance || f.bal || 0);
         });
 
-        document.getElementById("fee-count").innerText =
-            `Ksh ${totalFees.toLocaleString()}`;
+        // 🔥 Update UI
+        document.getElementById("totalFees").innerText = `Ksh ${totalExpected.toLocaleString()}`;
+        document.getElementById("feesPaid").innerText = `Ksh ${totalPaid.toLocaleString()}`;
+        document.getElementById("feesBalance").innerText = `Ksh ${totalBalance.toLocaleString()}`;
 
-        document.getElementById("fee-paid").innerText =
-            `Paid: Ksh ${totalPaid.toLocaleString()}`;
-
-        document.getElementById("fee-balance").innerText =
-            `Balance: Ksh ${totalBalance.toLocaleString()}`;
-
-    } catch (err) {
-        console.error("Error loading fees:", err);
+    } catch (error) {
+        console.error("Error loading fees:", error);
     }
 }
+
 
 
     // Add User Form Submission
