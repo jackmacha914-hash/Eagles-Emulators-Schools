@@ -496,6 +496,7 @@ async function loadInitialData() {
 
         const stats = await res.json();
         console.log("Dashboard Stats:", stats);
+        console.log("Dashboard API response:", stats);
 
         updateDashboardStats({
             totalStudents: stats.students || 0,
