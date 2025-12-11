@@ -1,51 +1,71 @@
+// routes/stats.js
 const express = require('express');
+const router = express.Router();
+const mongoose = require('mongoose');
+
+// Models
 const User = require('../models/User');
 const Event = require('../models/Event');
 const Club = require('../models/Club');
 const Attendance = require('../models/Attendance');
+const Book = require('../models/Book');
 const Fee = require('../models/Fee');
 
-const router = express.Router();
-
+// GET /api/stats
 router.get('/', async (req, res) => {
-    try {
-        const studentsCount = await User.countDocuments({ role: 'student' });
-        const teachersCount = await User.countDocuments({ role: 'teacher' });
-        const eventsCount = await Event.countDocuments();
-        const clubsCount = await Club.countDocuments();
+  try {
+    // Count students and teachers
+    const studentsCount = await User.countDocuments({ role: 'student' });
+    const teachersCount = await User.countDocuments({ role: 'teacher' });
 
-        const attendanceTotal = await Attendance.countDocuments();
-        const attendancePresent = await Attendance.countDocuments({ status: 'present' });
-        const attendanceAbsent = await Attendance.countDocuments({ status: 'absent' });
+    // Count events
+    const eventsCount = await Event.countDocuments();
 
-        const feesPaidAgg = await Fee.aggregate([
-            { $match: { status: 'paid' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]);
-        const feesBalanceAgg = await Fee.aggregate([
-            { $match: { status: 'balance' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]);
+    // Count clubs
+    const clubsCount = await Club.countDocuments();
 
-        res.status(200).json({
-            students: studentsCount,
-            teachers: teachersCount,
-            events: eventsCount,
-            clubs: clubsCount,
-            attendance: {
-                total: attendanceTotal,
-                present: attendancePresent,
-                absent: attendanceAbsent
-            },
-            fees: {
-                paid: feesPaidAgg[0]?.total || 0,
-                balance: feesBalanceAgg[0]?.total || 0
-            }
-        });
-    } catch (err) {
-        console.error('Error fetching stats:', err);
-        res.status(500).json({ message: 'Error fetching stats' });
-    }
+    // Attendance: Present and Absent
+    const presentCount = await Attendance.countDocuments({ status: 'present' });
+    const absentCount = await Attendance.countDocuments({ status: 'absent' });
+
+    // Library books issued
+    const issuedBooksCount = await Book.countDocuments({ status: 'issued' });
+
+    // Fees: total paid and balance
+    const fees = await Fee.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalPaid: { $sum: '$paidAmount' },
+          totalBalance: { $sum: '$balance' }
+        }
+      }
+    ]);
+
+    const totalPaid = fees[0]?.totalPaid || 0;
+    const totalBalance = fees[0]?.totalBalance || 0;
+
+    res.status(200).json({
+      students: studentsCount,
+      teachers: teachersCount,
+      events: eventsCount,
+      clubs: clubsCount,
+      attendance: {
+        present: presentCount,
+        absent: absentCount
+      },
+      library: {
+        issued: issuedBooksCount
+      },
+      fees: {
+        paid: totalPaid,
+        balance: totalBalance
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching stats:', err);
+    res.status(500).json({ message: 'Error fetching stats' });
+  }
 });
 
 module.exports = router;
