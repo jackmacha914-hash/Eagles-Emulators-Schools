@@ -487,7 +487,6 @@ const Dashboard = (() => {
     // Load initial data
 async function loadInitialData() {
     try {
-        // 🔵 Fetch Stats from your backend
         const res = await fetch("https://eagles-emulators-schools.onrender.com/api/stats", {
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -498,18 +497,26 @@ async function loadInitialData() {
         const stats = await res.json();
         console.log("Dashboard Stats:", stats);
 
-       updateDashboardStats({
-    totalStudents: stats.students || 0,
-    totalTeachers: stats.teachers || 0,
-    totalClasses: stats.clubs?.length || 0,    // number of clubs/classes
-    attendancePresent: stats.attendance?.present || 0,
-    attendanceAbsent: stats.attendance?.absent || 0,
-    totalBooks: stats.books?.total || 0,
-    issuedBooks: stats.books?.issued || 0,
-    totalFees: stats.fees?.total || 0,
-    feesPaid: stats.fees?.paid || 0,
-    feesBalance: stats.fees?.balance || 0
-});
+        updateDashboardStats({
+            totalStudents: stats.students || 0,
+            totalTeachers: stats.teachers || 0,
+            totalClubs: stats.clubs?.length || 0,
+            attendancePresent: stats.attendance?.present || 0,
+            attendanceAbsent: stats.attendance?.absent || 0,
+            attendanceRate: stats.attendance?.presentRate || 0, // for progress bar
+            totalBooks: stats.books?.total || 0,
+            issuedBooks: stats.books?.issued || 0,
+            totalFees: stats.fees?.total || 0,
+            feesPaid: stats.fees?.paid || 0,
+            feesBalance: stats.fees?.balance || 0
+        });
+
+    } catch (error) {
+        console.error("Error loading initial data:", error);
+        showNotification("Failed to load dashboard data", "error");
+    }
+}
+
 
         // 🔵 Fetch Clubs
         fetchClubsCount();
@@ -542,7 +549,7 @@ async function loadInitialData() {
 }
 
     
-    function updateDashboardStats(stats) {
+   function updateDashboardStats(stats) {
     if (!stats) return;
 
     // Students
@@ -553,29 +560,36 @@ async function loadInitialData() {
     const teacherCount = document.getElementById('teacher-count');
     if (teacherCount) teacherCount.textContent = stats.totalTeachers.toLocaleString();
 
-    // Classes / Clubs
-    const clubsCount = document.getElementById('club-count');
-    if (classCount) classCount.textContent = stats.totalClasses.toLocaleString();
+    // Clubs
+    const clubCount = document.getElementById('club-count');
+    if (clubCount) clubCount.textContent = stats.totalClubs.toLocaleString();
 
     // Attendance
-    const attendancePresent = document.getElementById('today-present');
-    const attendanceAbsent = document.getElementById('today-absent');
-    if (attendancePresent) attendancePresent.textContent = stats.attendancePresent;
-    if (attendanceAbsent) attendanceAbsent.textContent = stats.attendanceAbsent;
+    const todayPresent = document.getElementById('today-present');
+    const todayAbsent = document.getElementById('today-absent');
+    const presentPercentage = document.getElementById('present-percentage');
+    const absentPercentage = document.getElementById('absent-percentage');
+
+    if (todayPresent) todayPresent.textContent = stats.attendancePresent;
+    if (todayAbsent) todayAbsent.textContent = stats.attendanceAbsent;
+
+    if (presentPercentage) presentPercentage.style.width = `${stats.attendanceRate || 0}%`;
+    if (absentPercentage) absentPercentage.style.width = `${100 - (stats.attendanceRate || 0)}%`;
 
     // Library / Books
     const totalBooks = document.getElementById('book-count');
     const issuedBooks = document.getElementById('issued-books-count');
     if (totalBooks) totalBooks.textContent = stats.totalBooks;
-    if (issuedBooks) issuedBooks.textContent = stats.issuedBooks;
+    if (issuedBooks) issuedBooks.textContent = `Issued: ${stats.issuedBooks}`;
 
     // Fees
     const totalFees = document.getElementById('fee-count');
     const feesPaid = document.getElementById('fee-paid');
     const feesBalance = document.getElementById('fee-balance');
-    if (totalFees) totalFees.textContent = stats.totalFees;
-    if (feesPaid) feesPaid.textContent = stats.feesPaid;
-    if (feesBalance) feesBalance.textContent = stats.feesBalance;
+
+    if (totalFees) totalFees.textContent = `Ksh ${stats.totalFees.toLocaleString()}`;
+    if (feesPaid) feesPaid.textContent = `Paid: Ksh ${stats.feesPaid.toLocaleString()}`;
+    if (feesBalance) feesBalance.textContent = `Balance: Ksh ${stats.feesBalance.toLocaleString()}`;
 }
 
     
