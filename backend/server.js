@@ -98,8 +98,8 @@ app.use('/api/health', require('./routes/health'));
 // -------------------------
 
 // Always serve login for root and /login
-app.get(['/', '/login'], (req, res) => {
-  res.sendFile(path.join(pagesPath, 'login.html'));
+app.get(['/', '/'], (req, res) => {
+  res.sendFile(path.join(pagesPath, 'about.html'));
 });
 
 // Admin dashboard
