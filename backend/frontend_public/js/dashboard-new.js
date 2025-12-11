@@ -554,12 +554,12 @@ async function loadInitialData() {
     if (teacherCount) teacherCount.textContent = stats.totalTeachers.toLocaleString();
 
     // Classes / Clubs
-    const classCount = document.getElementById('class-count');
+    const clubsCount = document.getElementById('club-count');
     if (classCount) classCount.textContent = stats.totalClasses.toLocaleString();
 
     // Attendance
-    const attendancePresent = document.getElementById('attendance-present');
-    const attendanceAbsent = document.getElementById('attendance-absent');
+    const attendancePresent = document.getElementById('today-present');
+    const attendanceAbsent = document.getElementById('today-absent');
     if (attendancePresent) attendancePresent.textContent = stats.attendancePresent;
     if (attendanceAbsent) attendanceAbsent.textContent = stats.attendanceAbsent;
 
