@@ -70,21 +70,58 @@ document.addEventListener('DOMContentLoaded', () => {
     showSection(tabs[0].getAttribute('data-tab'));
 
     // Dashboard Stats
-    async function loadDashboardStats() {
-        const studentCountEl = document.getElementById('student-count');
-        const teacherCountEl = document.getElementById('teacher-count');
-        const eventCountEl = document.getElementById('event-count');
+   async function loadDashboardStats() {
+    try {
+        const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/stats');
+        const stats = await res.json();
+        console.log('Stats:', stats);
 
-        try {
-            const res = await authFetch('https://eagles-emulators-schools.onrender.com/api/stats');
-            const stats = await res.json();
-            studentCountEl.innerText = stats.students;
-            teacherCountEl.innerText = stats.teachers;
-            eventCountEl.innerText = stats.events;
-        } catch (err) {
-            console.error('Error loading stats:', err);
+        // Students
+        const studentCountEl = document.getElementById('student-count');
+        if (studentCountEl) studentCountEl.innerText = stats.students;
+
+        // Teachers
+        const teacherCountEl = document.getElementById('teacher-count');
+        if (teacherCountEl) teacherCountEl.innerText = stats.teachers;
+
+        // Active Classes
+        const classCountEl = document.getElementById('class-count');
+        if (classCountEl) classCountEl.innerText = stats.classes || 0; // add classes if API has
+
+        // Attendance (assuming you want percentage)
+        const attendanceEl = document.getElementById('attendance-count');
+        if (attendanceEl && stats.attendance) {
+            const total = stats.attendance.present + stats.attendance.absent;
+            const percent = total ? (stats.attendance.present / total) * 100 : 0;
+            attendanceEl.innerText = `${percent.toFixed(0)}%`;
         }
+
+        // Fees
+        const feeTotalEl = document.getElementById('totalFees');
+        const feePaidEl = document.getElementById('feesPaid');
+        const feeBalanceEl = document.getElementById('feesBalance');
+
+        if (feeTotalEl) feeTotalEl.innerText = `Ksh ${(stats.fees.paid + stats.fees.balance).toLocaleString()}`;
+        if (feePaidEl) feePaidEl.innerText = `Paid: Ksh ${stats.fees.paid.toLocaleString()}`;
+        if (feeBalanceEl) feeBalanceEl.innerText = `Balance: Ksh ${stats.fees.balance.toLocaleString()}`;
+
+        // Clubs
+        const clubCountEl = document.getElementById('club-count');
+        if (clubCountEl) clubCountEl.innerText = stats.clubs;
+
+        // Library
+        const libraryEl = document.getElementById('library-count');
+        if (libraryEl) libraryEl.innerText = stats.library.issued;
+
+        // Events
+        const eventCountEl = document.getElementById('event-count');
+        if (eventCountEl) eventCountEl.innerText = stats.events;
+
+    } catch (err) {
+        console.error('Error loading dashboard stats:', err);
     }
+}
+
 
     // Utility function to fetch with Authorization (Bearer Token)
     function authFetch(url, options = {}) {
