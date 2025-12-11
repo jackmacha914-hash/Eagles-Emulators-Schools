@@ -93,13 +93,12 @@ app.use('/api/health', require('./routes/health'));
 // -------------------------
 // FRONTEND ROUTES
 
-// Public homepage
-app.get('/', (req, res) => {
-  res.sendFile(path.join(pagesPath, 'home.html'));
-});
+// -------------------------
+// FRONTEND ROUTES
+// -------------------------
 
-// Login page
-app.get('/login', (req, res) => {
+// Always serve login for root and /login
+app.get(['/', '/login'], (req, res) => {
   res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
@@ -118,16 +117,16 @@ app.get('/student.html', (req, res) => {
   res.sendFile(path.join(pagesPath, 'student.html'));
 });
 
-// Other public pages (about, gallery, etc.) — wildcard last
-app.get('/:page.html', (req, res) => {
-  const requestedPage = path.join(pagesPath, `${req.params.page}.html`);
+// Any other page inside /pages folder
+app.get('/*.html', (req, res) => {
+  const requestedPage = path.join(pagesPath, req.path);
   res.sendFile(requestedPage, (err) => {
     if (err) {
-      console.error(`Page not found: ${req.params.page}.html`);
-      res.sendFile(path.join(pagesPath, 'home.html')); // fallback
+      res.sendFile(path.join(pagesPath, 'login.html'));
     }
   });
 });
+
 
 // -------------------------
 // Start server
