@@ -553,43 +553,28 @@ async function loadInitialData() {
     if (!stats) return;
 
     // Students
-    const studentCount = document.getElementById('student-count');
-    if (studentCount) studentCount.textContent = stats.totalStudents.toLocaleString();
+    document.getElementById('student-count')?.textContent = stats.totalStudents?.toLocaleString() || '0';
 
     // Teachers
-    const teacherCount = document.getElementById('teacher-count');
-    if (teacherCount) teacherCount.textContent = stats.totalTeachers.toLocaleString();
+    document.getElementById('teacher-count')?.textContent = stats.totalTeachers?.toLocaleString() || '0';
 
     // Clubs
-    const clubCount = document.getElementById('club-count');
-    if (clubCount) clubCount.textContent = stats.totalClubs.toLocaleString();
+    document.getElementById('club-count')?.textContent = stats.totalClubs?.toLocaleString() || '0';
 
     // Attendance
-    const todayPresent = document.getElementById('today-present');
-    const todayAbsent = document.getElementById('today-absent');
-    const presentPercentage = document.getElementById('present-percentage');
-    const absentPercentage = document.getElementById('absent-percentage');
-
-    if (todayPresent) todayPresent.textContent = stats.attendancePresent;
-    if (todayAbsent) todayAbsent.textContent = stats.attendanceAbsent;
-
-    if (presentPercentage) presentPercentage.style.width = `${stats.attendanceRate || 0}%`;
-    if (absentPercentage) absentPercentage.style.width = `${100 - (stats.attendanceRate || 0)}%`;
+    document.getElementById('today-present')?.textContent = stats.attendance?.present || '0';
+    document.getElementById('today-absent')?.textContent = stats.attendance?.absent || '0';
+    document.getElementById('present-percentage')?.style.setProperty('width', `${stats.attendance?.presentPercent || 0}%`);
+    document.getElementById('absent-percentage')?.style.setProperty('width', `${stats.attendance?.absentPercent || 0}%`);
 
     // Library / Books
-    const totalBooks = document.getElementById('book-count');
-    const issuedBooks = document.getElementById('issued-books-count');
-    if (totalBooks) totalBooks.textContent = stats.totalBooks;
-    if (issuedBooks) issuedBooks.textContent = `Issued: ${stats.issuedBooks}`;
+    document.getElementById('book-count')?.textContent = stats.library?.totalBooks || '0';
+    document.getElementById('issued-books-count')?.textContent = `Issued: ${stats.library?.issuedBooks || '0'}`;
 
     // Fees
-    const totalFees = document.getElementById('fee-count');
-    const feesPaid = document.getElementById('fee-paid');
-    const feesBalance = document.getElementById('fee-balance');
-
-    if (totalFees) totalFees.textContent = `Ksh ${stats.totalFees.toLocaleString()}`;
-    if (feesPaid) feesPaid.textContent = `Paid: Ksh ${stats.feesPaid.toLocaleString()}`;
-    if (feesBalance) feesBalance.textContent = `Balance: Ksh ${stats.feesBalance.toLocaleString()}`;
+    document.getElementById('fee-count')?.textContent = `Ksh ${stats.fees?.total?.toLocaleString() || 0}`;
+    document.getElementById('fee-paid')?.textContent = `Paid: Ksh ${stats.fees?.paid?.toLocaleString() || 0}`;
+    document.getElementById('fee-balance')?.textContent = `Balance: Ksh ${stats.fees?.balance?.toLocaleString() || 0}`;
 }
 
     
