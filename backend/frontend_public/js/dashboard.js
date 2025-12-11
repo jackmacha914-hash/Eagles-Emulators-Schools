@@ -133,6 +133,44 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching users:', err);
         }
     }
+//fees
+    async function loadFeesStats() {
+    try {
+        const res = await fetch("https://eagles-emulators-schools.onrender.com/api/accounts", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        const fees = await res.json();
+        console.log("FEES DATA:", fees);
+
+        if (!Array.isArray(fees)) return;
+
+        let totalFees = 0;
+        let totalPaid = 0;
+        let totalBalance = 0;
+
+        fees.forEach(item => {
+            totalFees += item.totalAmount || 0;
+            totalPaid += item.paidAmount || 0;
+            totalBalance += item.balance || 0;
+        });
+
+        document.getElementById("fee-count").innerText =
+            `Ksh ${totalFees.toLocaleString()}`;
+
+        document.getElementById("fee-paid").innerText =
+            `Paid: Ksh ${totalPaid.toLocaleString()}`;
+
+        document.getElementById("fee-balance").innerText =
+            `Balance: Ksh ${totalBalance.toLocaleString()}`;
+
+    } catch (err) {
+        console.error("Error loading fees:", err);
+    }
+}
+
 
     // Add User Form Submission
     document.getElementById('add-user-form')?.addEventListener('submit', async function (e) {
