@@ -486,4 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     loadDashboardStats();
+    loadClubCount();        // Clubs
+loadLibraryStats();     // Books
+loadAttendanceStats();  // Attendance
+loadFeesStats();        // Fees
 });
