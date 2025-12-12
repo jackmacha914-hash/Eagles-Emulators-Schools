@@ -424,6 +424,28 @@ console.log('Library script loaded');
   // -------------------------
   // You already use a separate dashboard fetch; this file focuses on library features.
 
+  // update counters
+      const totalBooks = books.length;
+      // issued count we retrieve separately (or infer zero)
+      let issuedCount = 0;
+      try {
+        const issued = await apiFetch(ENDPOINTS.issued);
+        issuedCount = Array.isArray(issued) ? issued.length : (issued && issued.data ? issued.data.length : 0);
+      } catch (err) {
+        warn('Could not load issued count:', err.message || err);
+      }
+      updateBookCounts(totalBooks, issuedCount);
+
+      attachBookTableListeners(); // re-attach events safely
+
+    } catch (err) {
+      error('Error loading library:', err);
+      if (libraryTableBody) libraryTableBody.innerHTML = `<tr><td colspan="9" class="text-danger">Error loading books: ${err.message}</td></tr>`;
+      showNotification('Failed to load library books', 'error');
+    }
+  }
+
+
   // -------------------------
   // Add book form handler (initializeLibraryForm)
   // -------------------------
