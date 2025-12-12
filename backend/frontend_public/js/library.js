@@ -2294,9 +2294,29 @@ function initializeLibrary() {
 }
 
 // Set up event listener when DOM is fully loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeLibrary);
-} else {
-    // If the DOM is already loaded, initialize immediately
-    initializeLibrary();
-}
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded. Initializing library...");
+
+    // Re-bind DOM elements NOW that they exist
+    window.libraryTableBody = document.getElementById("library-table-body");
+    window.libraryForm = document.getElementById("library-form");
+
+    // Library core
+    if (typeof initLibrary === "function") initLibrary();
+
+    // Searching / filters
+    if (typeof initIssuedBooksSearch === "function") initIssuedBooksSearch();
+
+    // Book form (Add / Issue)
+    if (typeof initializeLibraryForm === "function") initializeLibraryForm();
+
+    // Default tab
+    if (typeof showLibraryTab === "function") showLibraryTab("available-books");
+
+    // Load books
+    if (typeof loadLibraryWithFilters === "function") {
+        loadLibraryWithFilters().catch(err => {
+            console.error("Failed to load books:", err);
+        });
+    }
+});
