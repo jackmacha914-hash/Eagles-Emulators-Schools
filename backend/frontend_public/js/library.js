@@ -1,576 +1,543 @@
-(function() {
-// Library Management Logic
-const libraryForm = document.getElementById('library-form');
-const libraryList = document.getElementById('library-list');
-const librarySearch = document.getElementById('library-search');
-const libraryGenreFilter = document.getElementById('library-genre-filter');
-const libraryAuthorFilter = document.getElementById('library-author-filter');
-const libraryBulkToolbar = document.getElementById('library-bulk-toolbar');
-const libraryBulkDelete = document.getElementById('library-bulk-delete');
-const libraryBulkExport = document.getElementById('library-bulk-export');
-const selectAllLibrary = document.getElementById('select-all-library');
-const libraryTableBody = document.getElementById('library-table-body');
+/* library-module.js
+   Unified, robust library management frontend module.
+   Expects token in localStorage ("token") and optional window.API_CONFIG.BASE_URL.
+   Uses these DOM ids/classes: #library-form, #library-table-body, #library-search,
+   #select-all-library, #issued-books-list, #book-count, #issued-books-count, #book-*
+*/
 
-let selectedBookIds = new Set();
+(function () {
+  'use strict';
 
-// --- Advanced Filters for Library ---
-function getLibraryFilters() {
+  const LOG_PREFIX = '[LibraryModule]';
+
+  // ---------- Config ----------
+  const BASE = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL.replace(/\/$/, '') : '';
+  const ENDPOINTS = {
+    books: `${BASE}/api/books`,
+    issue: `${BASE}/api/books/issue`,
+    issued: `${BASE}/api/books/issued`,
+    return: (issueId) => `${BASE}/library/return/${issueId}`
+  };
+
+  // ---------- Internal state ----------
+  let initialized = false;
+  let libraryTableBody = null;
+  let libraryForm = null;
+  let librarySearch = null;
+  let selectAllLibrary = null;
+  let issuedBooksList = null;
+  let bookCountEl = null;
+  let issuedBooksCountEl = null;
+
+  // Track selected book ids for bulk actions
+  const selectedBookIds = new Set();
+
+  // ---------- Helpers ----------
+  function log(...args) { console.debug(LOG_PREFIX, ...args); }
+  function info(...args) { console.info(LOG_PREFIX, ...args); }
+  function warn(...args) { console.warn(LOG_PREFIX, ...args); }
+  function error(...args) { console.error(LOG_PREFIX, ...args); }
+
+  function authHeaders(extra = {}) {
+    const token = localStorage.getItem('token') || '';
     return {
-        search: librarySearch.value.trim(),
-        genre: libraryGenreFilter.value,
-        author: libraryAuthorFilter.value.trim()
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+      ...extra
     };
-}
+  }
 
-function buildLibraryQueryString(filters) {
-    const params = [];
-    if (filters.search) params.push(`search=${encodeURIComponent(filters.search)}`);
-    if (filters.genre) params.push(`genre=${encodeURIComponent(filters.genre)}`);
-    if (filters.author) params.push(`author=${encodeURIComponent(filters.author)}`);
-    return params.length ? '?' + params.join('&') : '';
-}
+  async function apiFetch(url, options = {}) {
+    const opts = {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        ...authHeaders(options.headers)
+      }
+    };
 
-async function loadLibraryWithFilters() {
-    const token = localStorage.getItem('token');
-    const filters = getLibraryFilters();
-// API base URL - update this to your actual API URL
-if (typeof API_BASE_URL === 'undefined') {
-    window.API_BASE_URL = 'https://eagles-emulators-schools.onrender.com';
-}
+    log('apiFetch', url, opts.method || 'GET');
+    const res = await fetch(url, opts);
 
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-        const books = await res.json();
-        libraryTableBody.innerHTML = '';
-        if (Array.isArray(books) && books.length > 0) {
-            books.forEach(book => {
-                libraryTableBody.insertAdjacentHTML('beforeend', renderBookRow(book));
-            });
-        } else {
-            libraryTableBody.innerHTML = '<tr><td colspan="5">No books found.</td></tr>';
-        }
-        // Add event delegation for table actions
-        if (libraryTableBody) {
-            // Remove any existing event listeners by cloning the table body
-            const newTableBody = libraryTableBody.cloneNode(true);
-            libraryTableBody.parentNode.replaceChild(newTableBody, libraryTableBody);
-            libraryTableBody = newTableBody; // Update the reference
-            
-            // Add the event listener to the new table body
-            newTableBody.addEventListener('click', async (e) => {
-                const btn = e.target;
-                const bookId = btn.getAttribute('data-id');
-                if (!bookId) return;
-                const token = localStorage.getItem('token');
-                // Edit Book (universal modal)
-                if (btn.classList.contains('edit-book-btn')) {
-                    const tr = btn.closest('tr');
-                    const currentTitle = tr.querySelector('td:nth-child(2)').textContent;
-                    const currentAuthor = tr.querySelector('td:nth-child(3)').textContent;
-                    const currentDesc = tr.querySelector('td:nth-child(4)').textContent;
-                    const universalEditModal = document.getElementById('universal-edit-modal');
-                    const universalEditForm = document.getElementById('universal-edit-form');
-                    const universalEditMsg = document.getElementById('universal-edit-msg');
-                    if (universalEditForm) {
-                        universalEditForm.innerHTML = `
-                            <input type="hidden" name="bookId" value="${bookId}" />
-                            <div class='form-group'><label>Title:</label><input type='text' name='title' value='${currentTitle}' required /></div>
-                            <div class='form-group'><label>Author:</label><input type='text' name='author' value='${currentAuthor}' required /></div>
-                            <div class='form-group'><label>Year:</label><input type='number' name='year' min='1000' max='2099' value='${book.year || new Date().getFullYear()}' /></div>
-                            <div class='form-group'><label>Copies:</label><input type='number' name='copies' min='1' value='${book.copies || 1}' required /></div>
-                            <div class='form-group'>
-                                <label>Genre:</label>
-                                <select name='genre' required>
-                                    <option value='Fiction' ${book.genre === 'Fiction' ? 'selected' : ''}>Fiction</option>
-                                    <option value='Non-Fiction' ${book.genre === 'Non-Fiction' ? 'selected' : ''}>Non-Fiction</option>
-                                    <option value='Science' ${book.genre === 'Science' ? 'selected' : ''}>Science</option>
-                                    <option value='History' ${book.genre === 'History' ? 'selected' : ''}>History</option>
-                                    <option value='Biography' ${book.genre === 'Biography' ? 'selected' : ''}>Biography</option>
-                                    <option value='Children' ${book.genre === 'Children' ? 'selected' : ''}>Children</option>
-                                </select>
-                            </div>
-                            <div class='form-group'>
-                                <label>Status:</label>
-                                <select name='status'>
-                                    <option value='available' ${book.status === 'available' ? 'selected' : ''}>Available</option>
-                                    <option value='checked-out' ${book.status === 'checked-out' ? 'selected' : ''}>Checked Out</option>
-                                    <option value='lost' ${book.status === 'lost' ? 'selected' : ''}>Lost</option>
-                                </select>
-                            </div>
-                            <button type='submit'>Save Changes</button>
-                        `;
-                        if (universalEditMsg) universalEditMsg.style.display = 'none';
-                        if (universalEditModal) {
-                            universalEditModal.style.display = 'block';
-                            universalEditForm.onsubmit = async (ev) => {
-                                ev.preventDefault();
-                                if (universalEditMsg) universalEditMsg.style.display = 'none';
-                                const formData = new FormData(universalEditForm);
-                                const title = formData.get('title');
-                                const author = formData.get('author');
-                                const year = formData.get('year');
-                                const genre = formData.get('genre');
-                                const status = formData.get('status') || 'available';
-                                const copies = parseInt(formData.get('copies')) || 1;
-                                try {
+    const text = await res.clone().text().catch(() => '');
+    log('apiFetch response', { url, status: res.status, bodyPreview: text.slice(0, 300) });
 
-                                    const res = await fetch(`https://eagles-emulators-schools.onrender.com/api/library/${bookId}`, {
-                                        method: 'PUT',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`,
-                                        },
-                                        body: JSON.stringify({ 
-                                            title, 
-                                            author, 
-                                            year: year ? parseInt(year) : new Date().getFullYear(),
-                                            genre,
-                                            status,
-                                            copies,
-                                            available: status === 'available' ? copies : 0
-                                        })
-                                    });
-                                    if (res.ok) {
-                                        if (universalEditMsg) {
-                                            universalEditMsg.textContent = 'Book updated successfully!';
-                                            universalEditMsg.style.color = 'green';
-                                            universalEditMsg.style.display = 'block';
-                                        }
-                                        setTimeout(() => {
-                                            if (universalEditModal) universalEditModal.style.display = 'none';
-                                            loadLibraryWithFilters();
-                                        }, 1000);
-                                    } else {
-                                        if (universalEditMsg) {
-                                            universalEditMsg.textContent = 'Failed to update book.';
-                                            universalEditMsg.style.color = 'red';
-                                            universalEditMsg.style.display = 'block';
-                                        }
-                                    }
-                                } catch {
-                                    if (universalEditMsg) {
-                                        universalEditMsg.textContent = 'Network error.';
-                                        universalEditMsg.style.color = 'red';
-                                        universalEditMsg.style.display = 'block';
-                                    }
-                                }
-                            };
-                        }
-                    }
-                }
-                // Issue Book
-                else if (btn.classList.contains('issue-book-btn')) {
-                    console.log('Issue button clicked');
-                    
-                    // Check if button is disabled
-                    if (btn.disabled) {
-                        console.log('Button is disabled - no available copies');
-                        return;
-                    }
-                    
-                    const bookId = btn.getAttribute('data-id');
-                    console.log('Book ID:', bookId);
-                    
-                    // Get book details from the row
-                    const row = btn.closest('tr');
-                    const bookTitle = row.cells[1].textContent;
-                    const availableCopies = parseInt(row.cells[6].textContent);
-                    
-                    console.log('Book:', bookTitle, 'Available:', availableCopies);
-                    
-                    // Show the issue form
-                    const universalModal = document.getElementById('universal-edit-modal');
-                    const universalForm = document.getElementById('universal-edit-form');
-                    
-                    if (!universalModal || !universalForm) {
-                        console.error('Required modal elements not found');
-                        return;
-                    }
-                    
-                    // Set up the modal for issuing a book
-                    document.getElementById('universal-edit-title').textContent = `Issue Book: ${bookTitle}`;
-                    universalForm.innerHTML = `
-                        <div class="form-group">
-                            <label for="borrower-name">Borrower Name *</label>
-                            <input type="text" id="borrower-name" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="borrower-id">Borrower ID/Email *</label>
-                            <input type="text" id="borrower-id" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="due-date">Due Date *</label>
-                            <input type="date" id="due-date" class="form-control" required 
-                                   min="${new Date().toISOString().split('T')[0]}">
-                        </div>
-                        <div class="form-buttons">
-                            <button type="button" class="cancel-btn" onclick="closeUniversalModal(universalModal)">Cancel</button>
-                            <button type="submit" class="submit-btn">Issue Book</button>
-                        </div>`;
-                    
-                    // Show the modal
-                    universalModal.style.display = 'block';
-                    
-                    // Handle form submission
-                    universalForm.onsubmit = async (e) => {
-                        e.preventDefault();
-                        
-                        const borrowerName = document.getElementById('borrower-name').value.trim();
-                        const borrowerId = document.getElementById('borrower-id').value.trim();
-                        const dueDate = document.getElementById('due-date').value;
-                        
-                        if (!borrowerName || !borrowerId || !dueDate) {
-                            alert('Please fill in all required fields');
-                            return;
-                        }
-                        
-                        try {
-                            const token = localStorage.getItem('token');
-
-                            const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/library/${bookId}/issue`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    borrowerName,
-                                    borrowerId,
-                                    dueDate
-                                })
-                            });
-                            
-                            const result = await response.json();
-                            
-                            if (response.ok) {
-                                alert('Book issued successfully!');
-                                closeUniversalModal(universalModal);
-                                loadLibraryWithFilters(); // Refresh the book list
-                            } else {
-                                throw new Error(result.error || 'Failed to issue book');
-                            }
-                        } catch (error) {
-                            console.error('Error issuing book:', error);
-                            alert(`Error: ${error.message}`);
-                        }
-                    };
-                        <div class="form-buttons">
-                            <button type="button" class="cancel-btn" onclick="closeUniversalModal(universalModal)">Cancel</button>
-                            <button type="submit" class="submit-btn">Issue Book</button>
-                        </div>
-                    `;
-                    
-                    // Show the modal
-                    universalModal.style.display = 'block';
-                    
-                    // Handle form submission
-                    const handleSubmit = async (e) => {
-                        e.preventDefault();
-                        
-                        const borrowerName = document.getElementById('borrower-name').value.trim();
-                        const borrowerId = document.getElementById('borrower-id').value.trim();
-                        const dueDate = document.getElementById('due-date').value;
-                        
-                        if (!borrowerName || !borrowerId || !dueDate) {
-                            alert('Please fill in all required fields');
-                            return;
-                        }
-                        
-                        try {
-                            const token = localStorage.getItem('token');
-                            const response = await fetch(`https://eagles-emulators-schools.onrender.com/api/library/${bookId}/issue`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    borrowerName,
-                                    borrowerId,
-                                    dueDate
-                                })
-                            });
-                            
-                            const result = await response.json();
-                            
-                            if (response.ok) {
-                                alert('Book issued successfully!');
-                                closeUniversalModal(universalModal);
-                                loadLibraryWithFilters(); // Refresh the book list
-                            } else {
-                                    
-                                    const result = await res.json();
-                                    
-                                    if (res.ok) {
-                                        if (universalMsg) {
-                                            universalMsg.textContent = 'Book issued successfully!';
-                                            universalMsg.style.color = 'green';
-                                            universalMsg.style.display = 'block';
-                                        }
-                                        setTimeout(() => {
-                                            if (universalModal) universalModal.style.display = 'none';
-                                            loadLibraryWithFilters();
-                                        }, 1000);
-                                    } else {
-                                        throw new Error(result.error || 'Failed to issue book');
-                                    }
-                                } catch (error) {
-                                    if (universalMsg) {
-                                        universalMsg.textContent = error.message || 'Error issuing book';
-                                        universalMsg.style.color = 'red';
-                                        universalMsg.style.display = 'block';
-                                    }
-                                }
-                            };
-                            
-                            // Add cancel button handler
-                            const cancelBtn = universalForm.querySelector('.cancel-btn');
-                            if (cancelBtn) {
-                                cancelBtn.onclick = () => {
-                                    if (universalModal) universalModal.style.display = 'none';
-                                };
-                            }
-                        }
-                    }
-                }
-                // Delete Book (universal confirm modal)
-                else if (btn.classList.contains('delete-book-btn')) {
-                    const universalConfirmModal = document.getElementById('universal-confirm-modal');
-                    const universalConfirmTitle = document.getElementById('universal-confirm-title');
-                    const universalConfirmMessage = document.getElementById('universal-confirm-message');
-                    const universalConfirmYes = document.getElementById('universal-confirm-yes');
-                    const universalConfirmNo = document.getElementById('universal-confirm-no');
-                    if (universalConfirmTitle) universalConfirmTitle.textContent = 'Delete Book';
-                    if (universalConfirmMessage) universalConfirmMessage.textContent = 'Are you sure you want to delete this book?';
-                    if (universalConfirmModal) universalConfirmModal.style.display = 'block';
-                    if (universalConfirmYes) {
-                        universalConfirmYes.onclick = async () => {
-                            if (universalConfirmModal) universalConfirmModal.style.display = 'none';
-                            try {
-
-                                const res = await fetch(`https://eagles-emulators-schools.onrender.com/api/library/${bookId}`, {
-                                    method: 'DELETE',
-                                    headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                if (res.ok) {
-                                    loadLibraryWithFilters();
-                                }
-                            } catch {}
-                        };
-                    }
-                    if (universalConfirmNo) universalConfirmNo.onclick = () => {
-                        if (universalConfirmModal) universalConfirmModal.style.display = 'none';
-                    };
-                }
-            });
-        }
-        if (selectAllLibrary) {
-            selectAllLibrary.checked = false;
-            selectAllLibrary.onchange = async function() {
-                if (this.checked) {
-                    document.querySelectorAll('.library-select-checkbox').forEach(cb => {
-                        cb.checked = true;
-                        selectedBookIds.add(cb.getAttribute('data-id'));
-                    });
-                } else {
-                    document.querySelectorAll('.library-select-checkbox').forEach(cb => {
-                        cb.checked = false;
-                        selectedBookIds.delete(cb.getAttribute('data-id'));
-                    });
-                }
-                updateLibraryBulkToolbarState();
-            };
-        }
-        updateLibraryBulkToolbarState();
-    } catch (err) {
-        libraryTableBody.innerHTML = '<tr><td colspan="5">Error loading library.</td></tr>';
+    if (!res.ok) {
+      // Try to parse JSON error
+      let errData = null;
+      try { errData = await res.json(); } catch (e) { /* ignore */ }
+      const msg = (errData && (errData.msg || errData.message)) || `HTTP ${res.status}`;
+      const err = new Error(msg);
+      err.status = res.status;
+      err.data = errData;
+      throw err;
     }
-}
 
-function renderBookRow(book) {
-    const available = book.available !== undefined ? book.available : (book.copies || 1);
-    const copies = book.copies || 1;
-    const availableClass = available > 0 ? 'status-available' : 'status-checked-out';
-    
-    return `<tr>
-        <td><input type="checkbox" class="library-select-checkbox" data-id="${book._id}"></td>
-        <td>${book.title}</td>
-        <td>${book.author}</td>
-        <td>${book.year || 'N/A'}</td>
-        <td>${book.genre || 'N/A'}</td>
-        <td class="status-${book.status || 'available'}">${book.status || 'available'}</td>
-        <td>${copies}</td>
-        <td class="${availableClass}">${available}</td>
-        <td class="actions-cell">
-            <button class="edit-book-btn" data-id="${book._id}">Edit</button>
-            <button class="issue-book-btn" data-id="${book._id}" ${book.available < 1 ? 'disabled' : ''}>Issue</button>
-            <button class="delete-book-btn" data-id="${book._id}">Delete</button>
-        </td>
+    // If no JSON content, return null
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
+    return res.json();
+  }
+
+  function formatKES(n) {
+    if (n === null || n === undefined) return 'Ksh 0';
+    if (typeof n === 'number') return `Ksh ${n.toLocaleString()}`;
+    const parsed = Number(n);
+    if (!isFinite(parsed)) return `Ksh ${n}`;
+    return `Ksh ${parsed.toLocaleString()}`;
+  }
+
+  function showNotification(msg, type = 'info') {
+    // Minimal inline notification: append to #notification-container if exists
+    const container = document.getElementById('notification-container') || document.body;
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.textContent = msg;
+    el.style.cssText = 'position:relative;padding:8px 12px;border-radius:6px;margin:6px;background:#222;color:#fff;opacity:0.95';
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  // ---------- Rendering ----------
+  function renderBookRow(book = {}) {
+    const id = book._id || book.id || '';
+    const available = (book.available !== undefined ? book.available : (book.copies || 0));
+    const copies = book.copies || 0;
+    const status = book.status || 'available';
+    // sanitize text quickly
+    const esc = (s) => String(s == null ? '' : s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<tr data-id="${esc(id)}" data-title="${esc(book.title)}" data-class="${esc(book.className || '')}">
+      <td><input type="checkbox" class="library-select-checkbox" data-id="${esc(id)}"></td>
+      <td>${esc(book.title)}</td>
+      <td>${esc(book.author || '')}</td>
+      <td>${esc(book.year || 'N/A')}</td>
+      <td>${esc(book.genre || '')}</td>
+      <td class="status-${esc(status)}">${esc(status)}</td>
+      <td>${esc(copies)}</td>
+      <td>${esc(available)}</td>
+      <td class="actions-cell">
+        <button class="btn btn-sm edit-book-btn" data-id="${esc(id)}">Edit</button>
+        <button class="btn btn-sm issue-book-btn" data-id="${esc(id)}" data-available="${available}" ${available < 1 ? 'disabled' : ''}>Issue</button>
+        <button class="btn btn-sm delete-book-btn" data-id="${esc(id)}">Delete</button>
+      </td>
     </tr>`;
-}
+  }
 
-function updateLibraryBulkToolbarState() {
-    const hasSelection = selectedBookIds.size > 0;
-    if (libraryBulkToolbar) libraryBulkToolbar.style.display = hasSelection ? 'block' : 'none';
-    if (libraryBulkDelete) libraryBulkDelete.disabled = !hasSelection;
-    if (libraryBulkExport) libraryBulkExport.disabled = !hasSelection;
-}
+  function updateBookCounts(totalBooks = 0, issuedCount = 0) {
+    if (bookCountEl) bookCountEl.textContent = String(totalBooks);
+    if (issuedBooksCountEl) issuedBooksCountEl.textContent = String(issuedCount);
+  }
 
-function clearLibrarySelections() {
-    selectedBookIds.clear();
-    document.querySelectorAll('.library-select-checkbox').forEach(cb => cb.checked = false);
-    if (selectAllLibrary) selectAllLibrary.checked = false;
-    updateLibraryBulkToolbarState();
-}
+  // ---------- Core flows ----------
+  async function loadLibraryWithFilters() {
+    try {
+      if (!libraryTableBody) libraryTableBody = document.getElementById('library-table-body');
+      if (!libraryTableBody) {
+        warn('library-table-body not found');
+        return;
+      }
+      libraryTableBody.innerHTML = `<tr><td colspan="9">Loading books...</td></tr>`;
 
-if (libraryForm) {
-    libraryForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const title = document.getElementById('book-title').value;
-        const author = document.getElementById('book-author').value;
-        const year = document.getElementById('book-year').value;
-        const genre = document.getElementById('book-genre').value;
-        const status = document.getElementById('book-status').value;
-        const copies = parseInt(document.getElementById('book-copies').value) || 1;
-        
-        if (!title || !author || !genre) {
-            alert('Please fill in all required fields');
-            return;
-        }
-        
-        if (copies < 1) {
-            alert('Number of copies must be at least 1');
-            return;
-        }
-        
-        const token = localStorage.getItem('token');
-        const bookData = { 
-            title, 
-            author, 
-            year: year ? parseInt(year) : new Date().getFullYear(),
-            genre,
-            status: status || 'available',
-            copies: copies,
-            available: status === 'available' ? copies : 0
-        };
-        
-        console.log('Sending book data:', bookData);
-        try {
+      // build filters: only class filter supported per your confirmation
+      const classFilterEl = document.getElementById('library-class') || document.getElementById('library-class-filter');
+      let qs = '';
+      if (classFilterEl && classFilterEl.value) {
+        qs = `?className=${encodeURIComponent(classFilterEl.value)}`;
+      } else if (librarySearch && librarySearch.value) {
+        qs = `?search=${encodeURIComponent(librarySearch.value.trim())}`;
+      }
 
-            const res = await fetch('https://eagles-emulators-schools.onrender.com/api/library', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(bookData)
-            });
-            
-            const responseData = await res.json().catch(() => ({}));
-            console.log('Server response:', responseData);
-            if (res.ok) {
-                libraryForm.reset();
-                loadLibraryWithFilters();
-            } else {
-                const errorText = await res.text();
-            console.error('Failed to add book. Status:', res.status, 'Response:', errorText);
-            alert(`Failed to add book: ${errorText || 'Unknown error'}`);
-            }
-        } catch (err) {
-            alert('Network error');
-        }
+      // call API: either /api/books (GET) with query string
+      const response = await apiFetch(`${ENDPOINTS.books}${qs}`);
+      // API might return array or {data:[]}
+      const books = Array.isArray(response) ? response : (response && response.data ? response.data : []);
+
+      if (!Array.isArray(books)) {
+        libraryTableBody.innerHTML = `<tr><td colspan="9">Invalid books response</td></tr>`;
+        return;
+      }
+
+      if (books.length === 0) {
+        libraryTableBody.innerHTML = `<tr><td colspan="9">No books found in the library.</td></tr>`;
+      } else {
+        libraryTableBody.innerHTML = books.map(renderBookRow).join('');
+      }
+
+      // update counters
+      const totalBooks = books.length;
+      // issued count we retrieve separately (or infer zero)
+      let issuedCount = 0;
+      try {
+        const issued = await apiFetch(ENDPOINTS.issued);
+        issuedCount = Array.isArray(issued) ? issued.length : (issued && issued.data ? issued.data.length : 0);
+      } catch (err) {
+        warn('Could not load issued count:', err.message || err);
+      }
+      updateBookCounts(totalBooks, issuedCount);
+
+      attachBookTableListeners(); // re-attach events safely
+
+    } catch (err) {
+      error('Error loading library:', err);
+      if (libraryTableBody) libraryTableBody.innerHTML = `<tr><td colspan="9" class="text-danger">Error loading books: ${err.message}</td></tr>`;
+      showNotification('Failed to load library books', 'error');
+    }
+  }
+
+  async function addBookFromForm(ev) {
+    ev.preventDefault();
+    if (!libraryForm) return;
+
+    const title = (document.getElementById('book-title')?.value || '').trim();
+    const author = (document.getElementById('book-author')?.value || '').trim();
+    const year = parseInt(document.getElementById('book-year')?.value) || new Date().getFullYear();
+    const genre = (document.getElementById('book-genre')?.value || '').trim();
+    const className = (document.getElementById('book-class')?.value || '').trim();
+    const copies = parseInt(document.getElementById('book-copies')?.value) || 1;
+    const status = (document.getElementById('book-status')?.value || 'available');
+
+    if (!title || !author || !className) {
+      alert('Please fill required fields: title, author and class.');
+      return;
+    }
+
+    try {
+      const payload = { title, author, year, genre, className, copies, available: copies, status };
+
+      const res = await apiFetch(ENDPOINTS.books, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      showNotification('Book added successfully', 'success');
+      libraryForm.reset();
+      await loadLibraryWithFilters();
+    } catch (err) {
+      error('Add book failed', err);
+      showNotification(err.message || 'Failed to add book', 'error');
+    }
+  }
+
+  async function issueBookFlow(bookId) {
+    try {
+      const studentId = prompt('Enter Student ID (or admission number):');
+      if (!studentId) return;
+
+      const res = await apiFetch(ENDPOINTS.issue, {
+        method: 'POST',
+        body: JSON.stringify({ bookId, studentId })
+      });
+
+      showNotification('Book issued successfully', 'success');
+      await loadLibraryWithFilters();
+    } catch (err) {
+      error('Issue book failed', err);
+      showNotification(err.message || 'Failed to issue book', 'error');
+    }
+  }
+
+  async function deleteBookFlow(bookId) {
+    if (!confirm('Are you sure you want to delete this book?')) return;
+    try {
+      await apiFetch(`${ENDPOINTS.books}/${encodeURIComponent(bookId)}`, { method: 'DELETE' });
+      showNotification('Book deleted', 'success');
+      await loadLibraryWithFilters();
+    } catch (err) {
+      error('Delete book failed', err);
+      showNotification(err.message || 'Failed to delete book', 'error');
+    }
+  }
+
+  // Return flow uses your endpoint POST /library/return/:issueId
+  async function returnBookFlow(issueId) {
+    try {
+      // ask confirmation / optionally ask fine paid
+      const ok = confirm('Confirm return of this issued book?');
+      if (!ok) return;
+
+      await apiFetch(ENDPOINTS.return(issueId), { method: 'POST' });
+      showNotification('Book returned successfully', 'success');
+      await loadLibraryWithFilters();
+      await loadIssuedBooks();
+    } catch (err) {
+      error('Return failed', err);
+      showNotification(err.message || 'Failed to return book', 'error');
+    }
+  }
+
+  // ---------- Issued books ----------
+  async function loadIssuedBooks() {
+    try {
+      if (!issuedBooksList) issuedBooksList = document.getElementById('issued-books-list');
+      if (!issuedBooksList) {
+        warn('issued-books-list not found');
+        return;
+      }
+      issuedBooksList.innerHTML = `<tr><td colspan="8">Loading issued books...</td></tr>`;
+      const res = await apiFetch(ENDPOINTS.issued);
+      const issued = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      if (!Array.isArray(issued) || issued.length === 0) {
+        issuedBooksList.innerHTML = `<tr><td colspan="8">No issued books found.</td></tr>`;
+        return;
+      }
+
+      const rows = issued.map(item => {
+        // Expecting each item has fields like: _id(issue id), title, borrowerName, className, issueDate, dueDate, returned, fine
+        const issueId = item._id || item.issueId || '';
+        const title = item.title || item.doc?.title || item.book?.title || 'Unknown';
+        const borrower = item.borrowerName || item.borrower || 'Unknown';
+        const className = item.className || item.doc?.className || item.book?.className || 'Ungrouped';
+        const issueDate = item.issueDate ? new Date(item.issueDate).toLocaleDateString() : 'N/A';
+        const dueDate = item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'N/A';
+        const returned = !!item.returned;
+        const fine = item.fine || 0;
+
+        return `<tr data-issueid="${issueId}">
+          <td>${title}</td>
+          <td>${borrower}</td>
+          <td>${className}</td>
+          <td>${issueDate}</td>
+          <td>${dueDate}${(!returned && new Date(item.dueDate) < new Date() ? ` <span style="color:red">Overdue</span>` : '')}</td>
+          <td>${returned ? 'Returned' : 'Issued'}</td>
+          <td>${fine ? `Ksh ${Number(fine).toFixed(2)}` : '-'}</td>
+          <td>${!returned ? `<button class="btn btn-sm return-book-btn" data-issueid="${issueId}">Return</button>` : ''}</td>
+        </tr>`;
+      });
+
+      issuedBooksList.innerHTML = rows.join('');
+    } catch (err) {
+      error('Error loading issued books', err);
+      if (issuedBooksList) issuedBooksList.innerHTML = `<tr><td colspan="8" class="text-danger">Failed to load issued books</td></tr>`;
+    }
+  }
+
+  // ---------- Event binding (idempotent) ----------
+  function attachBookTableListeners() {
+    if (!libraryTableBody) libraryTableBody = document.getElementById('library-table-body');
+    if (!libraryTableBody) return;
+
+    // Avoid re-binding: we attach once by setting a flag on the element
+    if (libraryTableBody._bound) return;
+    libraryTableBody._bound = true;
+
+    libraryTableBody.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button');
+      if (!btn) return;
+
+      if (btn.classList.contains('issue-book-btn')) {
+        const bookId = btn.getAttribute('data-id');
+        await issueBookFlow(bookId);
+        return;
+      }
+
+      if (btn.classList.contains('delete-book-btn')) {
+        const bookId = btn.getAttribute('data-id');
+        await deleteBookFlow(bookId);
+        return;
+      }
+
+      if (btn.classList.contains('edit-book-btn')) {
+        alert('Edit book not implemented in this module — add your edit flow here.');
+        return;
+      }
     });
-}
 
-// Attach filter listeners
-if (librarySearch) librarySearch.addEventListener('input', () => loadLibraryWithFilters());
-if (libraryGenreFilter) libraryGenreFilter.addEventListener('change', () => loadLibraryWithFilters());
-if (libraryAuthorFilter) libraryAuthorFilter.addEventListener('input', () => loadLibraryWithFilters());
+    // Checkbox selection
+    libraryTableBody.addEventListener('change', (ev) => {
+      const cb = ev.target.closest('.library-select-checkbox');
+      if (!cb) return;
+      const id = cb.getAttribute('data-id');
+      if (cb.checked) selectedBookIds.add(id);
+      else selectedBookIds.delete(id);
+      updateBulkToolbar();
+    });
+  }
 
-// --- Universal Modal Logic (Library) ---
-const universalEditModal = document.getElementById('universal-edit-modal');
-const closeUniversalEditModal = document.getElementById('close-universal-edit-modal');
-const universalEditForm = document.getElementById('universal-edit-form');
-const universalEditMsg = document.getElementById('universal-edit-msg');
+  function updateBulkToolbar() {
+    const toolbar = document.getElementById('library-bulk-toolbar');
+    const deleteBtn = document.getElementById('library-bulk-delete');
+    const exportBtn = document.getElementById('library-bulk-export');
+    if (!toolbar) return;
+    const show = selectedBookIds.size > 0;
+    toolbar.style.display = show ? 'block' : 'none';
+    if (deleteBtn) deleteBtn.disabled = !show;
+    if (exportBtn) exportBtn.disabled = !show;
+  }
 
-const universalConfirmModal = document.getElementById('universal-confirm-modal');
-const closeUniversalConfirmModal = document.getElementById('close-universal-confirm-modal');
-const universalConfirmTitle = document.getElementById('universal-confirm-title');
-const universalConfirmMessage = document.getElementById('universal-confirm-message');
-const universalConfirmYes = document.getElementById('universal-confirm-yes');
-const universalConfirmNo = document.getElementById('universal-confirm-no');
+  // Bulk delete handler (simple)
+  async function handleBulkDelete() {
+    if (selectedBookIds.size === 0) return;
+    if (!confirm(`Delete ${selectedBookIds.size} selected book(s)?`)) return;
 
-function openUniversalModal(modal) { 
-    if (modal) modal.style.display = 'block'; 
-}
-function closeUniversalModal(modal) { 
-    if (modal) modal.style.display = 'none'; 
-}
+    try {
+      const ids = Array.from(selectedBookIds);
+      for (const id of ids) {
+        await apiFetch(`${ENDPOINTS.books}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      }
+      showNotification('Selected books deleted', 'success');
+      selectedBookIds.clear();
+      updateBulkToolbar();
+      await loadLibraryWithFilters();
+    } catch (err) {
+      error('Bulk delete error', err);
+      showNotification('Some deletions failed', 'error');
+    }
+  }
 
-if (closeUniversalEditModal) closeUniversalEditModal.onclick = () => closeUniversalModal(universalEditModal);
-if (closeUniversalConfirmModal) closeUniversalConfirmModal.onclick = () => closeUniversalModal(universalConfirmModal);
-window.onclick = function(event) {
-  if (event.target === universalEditModal) closeUniversalModal(universalEditModal);
-  if (event.target === universalConfirmModal) closeUniversalModal(universalConfirmModal);
-};
+  // Bulk export simple CSV
+  async function handleBulkExport() {
+    if (selectedBookIds.size === 0) {
+      showNotification('Select books to export', 'warning');
+      return;
+    }
+    try {
+      // fetch all books then filter locally to avoid extra endpoints
+      const res = await apiFetch(ENDPOINTS.books);
+      const books = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      const selected = books.filter(b => selectedBookIds.has(String(b._id || b.id)));
+      if (!selected.length) throw new Error('No matching books found');
 
-// Bulk Delete
-if (libraryBulkDelete) {
-    libraryBulkDelete.onclick = async function() {
-        if (selectedBookIds.size === 0) return;
-        const universalConfirmModal = document.getElementById('universal-confirm-modal');
-        const universalConfirmTitle = document.getElementById('universal-confirm-title');
-        const universalConfirmMessage = document.getElementById('universal-confirm-message');
-        const universalConfirmYes = document.getElementById('universal-confirm-yes');
-        const universalConfirmNo = document.getElementById('universal-confirm-no');
-        if (universalConfirmTitle) universalConfirmTitle.textContent = 'Delete Selected Books';
-        if (universalConfirmMessage) universalConfirmMessage.textContent = `Are you sure you want to delete ${selectedBookIds.size} selected book(s)?`;
-        if (universalConfirmModal) universalConfirmModal.style.display = 'block';
-        if (universalConfirmYes) {
-            universalConfirmYes.onclick = async () => {
-                if (universalConfirmModal) universalConfirmModal.style.display = 'none';
-                const token = localStorage.getItem('token');
-                for (const bookId of selectedBookIds) {
-                    try {
+      const headers = ['Title', 'Author', 'Class', 'Status', 'Available', 'Genre'];
+      let csv = headers.join(',') + '\n';
+      selected.forEach(b => {
+        const row = [
+          `"${(b.title||'').replace(/"/g,'""')}"`,
+          `"${(b.author||'').replace(/"/g,'""')}"`,
+          `"${(b.className||'').replace(/"/g,'""')}"`,
+          `"${(b.status||'').replace(/"/g,'""')}"`,
+          `${b.available||0}`,
+          `"${(b.genre||'').replace(/"/g,'""')}"`,
+        ];
+        csv += row.join(',') + '\n';
+      });
 
-                        await fetch(`https://eagles-emulators-schools.onrender.com/api/library/${bookId}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                    } catch {}
-                }
-                clearLibrarySelections();
-                loadLibraryWithFilters();
-            };
-        }
-        if (universalConfirmNo) universalConfirmNo.onclick = () => {
-            if (universalConfirmModal) universalConfirmModal.style.display = 'none';
-        };
-    };
-}
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `library_export_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showNotification('Exported selected books', 'success');
+    } catch (err) {
+      error('Export failed', err);
+      showNotification(err.message || 'Export failed', 'error');
+    }
+  }
 
-// Bulk Export
-if (libraryBulkExport) {
-    libraryBulkExport.onclick = async function() {
-        if (selectedBookIds.size === 0) return;
-        const token = localStorage.getItem('token')
-        let url = 'https://eagles-emulators-schools.onrender.com/api/library';
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-        const books = await res.json();
-        const selected = books.filter(b => selectedBookIds.has(b._id));
-        let csv = 'Title,Author,Description\n';
-        selected.forEach(b => {
-            csv += `${b.title},${b.author},${b.description || ''}\n`;
+  // Attach issued book return listener
+  function attachIssuedBooksListeners() {
+    if (!issuedBooksList) issuedBooksList = document.getElementById('issued-books-list');
+    if (!issuedBooksList) return;
+    if (issuedBooksList._bound) return;
+    issuedBooksList._bound = true;
+    issuedBooksList.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.return-book-btn');
+      if (!btn) return;
+      const issueId = btn.getAttribute('data-issueid');
+      await returnBookFlow(issueId);
+    });
+  }
+
+  // ---------- Initialization ----------
+  function wireFormAndControls() {
+    // DOM element references (lazy)
+    libraryForm = document.getElementById('library-form');
+    libraryTableBody = document.getElementById('library-table-body') || libraryTableBody;
+    librarySearch = document.getElementById('library-search') || librarySearch;
+    selectAllLibrary = document.getElementById('select-all-library') || selectAllLibrary;
+    issuedBooksList = document.getElementById('issued-books-list') || issuedBooksList;
+    bookCountEl = document.getElementById('book-count') || bookCountEl;
+    issuedBooksCountEl = document.getElementById('issued-books-count') || issuedBooksCountEl;
+
+    // form submit
+    if (libraryForm && !libraryForm._bound) {
+      libraryForm._bound = true;
+      libraryForm.addEventListener('submit', addBookFromForm);
+    }
+
+    // search debounce
+    if (librarySearch && !librarySearch._bound) {
+      librarySearch._bound = true;
+      let t;
+      librarySearch.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(() => loadLibraryWithFilters(), 300);
+      });
+    }
+
+    // select all checkbox
+    if (selectAllLibrary && !selectAllLibrary._bound) {
+      selectAllLibrary._bound = true;
+      selectAllLibrary.addEventListener('change', (ev) => {
+        const checked = !!ev.target.checked;
+        document.querySelectorAll('.library-select-checkbox').forEach(cb => {
+          cb.checked = checked;
+          const id = cb.getAttribute('data-id');
+          if (checked) selectedBookIds.add(id); else selectedBookIds.delete(id);
         });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'selected_books.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-}
+        updateBulkToolbar();
+      });
+    }
 
-if (libraryList) loadLibraryWithFilters();
+    // bulk buttons
+    const bulkDelete = document.getElementById('library-bulk-delete');
+    if (bulkDelete && !bulkDelete._bound) {
+      bulkDelete._bound = true;
+      bulkDelete.addEventListener('click', handleBulkDelete);
+    }
+    const bulkExport = document.getElementById('library-bulk-export');
+    if (bulkExport && !bulkExport._bound) {
+      bulkExport._bound = true;
+      bulkExport.addEventListener('click', handleBulkExport);
+    }
+  }
+
+  async function initLibrary() {
+    if (initialized) {
+      log('Already initialized');
+      return;
+    }
+    initialized = true;
+    log('initLibrary start');
+
+    // Wire DOM controls
+    wireFormAndControls();
+
+    // Load data
+    await loadLibraryWithFilters();
+    await loadIssuedBooks();
+
+    // Attach listeners
+    attachBookTableListeners();
+    attachIssuedBooksListeners();
+
+    // update bulk toolbar initial
+    updateBulkToolbar();
+
+    log('initLibrary done');
+  }
+
+  // Public init that is safe to call multiple times
+  function initializeLibrary() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initLibrary().catch(err => error(err)));
+    } else {
+      initLibrary().catch(err => error(err));
+    }
+  }
+
+  // auto-init
+  initializeLibrary();
+
+  // expose a couple of helpers for debugging if needed
+  window.__LIBRARY_MODULE = {
+    reloadBooks: loadLibraryWithFilters,
+    reloadIssued: loadIssuedBooks,
+    apiFetch,
+    config: { BASE, ENDPOINTS }
+  };
 
 })();
