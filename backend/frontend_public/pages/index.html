@@ -2282,7 +2282,7 @@ window.fetch = async (input, init = {}) => {
 
 
 <!-- Transport Section -->
-<div id="transport-section" class="transport-tab">
+<section id="transport-section" class="tab-section">
     <h2>Transport Management</h2>
 
     <div class="transport-actions">
@@ -2299,77 +2299,80 @@ window.fetch = async (input, init = {}) => {
             <i class="fas fa-user-graduate"></i> Students
         </button>
     </div>
-</div>
 
-            <!-- Bus Modal -->
-<div class="transport-modal" id="busModal">
-    <div class="transport-modal-content large">
-        <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
-        <h3>Bus Management</h3>
-        <form class="grid-form">
-            <input type="text" placeholder="Bus Number">
-            <input type="text" placeholder="Plate Number">
-            <input type="number" placeholder="Capacity">
-            <select>
-                <option>Status</option>
-                <option>Active</option>
-                <option>Maintenance</option>
-            </select>
-            <button class="btn full">Save Bus</button>
-        </form>
-    </div>
-</div>
+    <!-- ==================== Modals ==================== -->
 
-<!-- Route Modal -->
-<div class="transport-modal" id="routeModal">
-    <div class="transport-modal-content large">
-        <span class="close" onclick="closeTransportModal('routeModal')">&times;</span>
-        <h3>Route Management</h3>
-        <form class="grid-form">
-            <input type="text" placeholder="Route Name">
-            <select>
-                <option>Select Bus</option>
-                <option>Bus 01</option>
-            </select>
-        </form>
+    <!-- Bus Modal -->
+    <div class="transport-modal" id="busModal">
+        <div class="transport-modal-content large">
+            <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
+            <h3>Bus Management</h3>
+            <form class="grid-form">
+                <input type="text" placeholder="Bus Number">
+                <input type="text" placeholder="Plate Number">
+                <input type="number" placeholder="Capacity">
+                <select>
+                    <option>Status</option>
+                    <option>Active</option>
+                    <option>Maintenance</option>
+                </select>
+                <button class="btn full">Save Bus</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Driver Modal -->
-<div class="transport-modal" id="driverModal">
-    <div class="transport-modal-content">
-        <span class="close" onclick="closeTransportModal('driverModal')">&times;</span>
-        <h3>Driver Assignment</h3>
-        <form>
-            <input type="text" placeholder="Driver Name">
-            <input type="text" placeholder="License Number">
-            <select>
-                <option>Assign Bus</option>
-            </select>
-            <button class="btn full">Assign Driver</button>
-        </form>
+    <!-- Route Modal -->
+    <div class="transport-modal" id="routeModal">
+        <div class="transport-modal-content large">
+            <span class="close" onclick="closeTransportModal('routeModal')">&times;</span>
+            <h3>Route Management</h3>
+            <form class="grid-form">
+                <input type="text" placeholder="Route Name">
+                <select>
+                    <option>Select Bus</option>
+                    <option>Bus 01</option>
+                </select>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Student Modal -->
-<div class="transport-modal" id="studentTransportModal">
-    <div class="transport-modal-content large">
-        <span class="close" onclick="closeTransportModal('studentTransportModal')">&times;</span>
-        <h3>Student Transport Assignment</h3>
-        <form class="grid-form">
-            <select>
-                <option>Select Student</option>
-            </select>
-            <select>
-                <option>Select Route</option>
-            </select>
-            <select>
-                <option>Select Bus</option>
-            </select>
-            <button class="btn full">Assign</button>
-        </form>
+    <!-- Driver Modal -->
+    <div class="transport-modal" id="driverModal">
+        <div class="transport-modal-content">
+            <span class="close" onclick="closeTransportModal('driverModal')">&times;</span>
+            <h3>Driver Assignment</h3>
+            <form class="grid-form">
+                <input type="text" placeholder="Driver Name">
+                <input type="text" placeholder="License Number">
+                <select>
+                    <option>Assign Bus</option>
+                </select>
+                <button class="btn full">Assign Driver</button>
+            </form>
+        </div>
     </div>
-</div>
+
+    <!-- Student Transport Modal -->
+    <div class="transport-modal" id="studentTransportModal">
+        <div class="transport-modal-content large">
+            <span class="close" onclick="closeTransportModal('studentTransportModal')">&times;</span>
+            <h3>Student Transport Assignment</h3>
+            <form class="grid-form">
+                <select>
+                    <option>Select Student</option>
+                </select>
+                <select>
+                    <option>Select Route</option>
+                </select>
+                <select>
+                    <option>Select Bus</option>
+                </select>
+                <button class="btn full">Assign</button>
+            </form>
+        </div>
+    </div>
+
+</section>
 
 
             <!-- Bulk Actions Toolbar for Events -->
