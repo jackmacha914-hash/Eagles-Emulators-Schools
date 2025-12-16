@@ -1220,7 +1220,7 @@ window.fetch = async (input, init = {}) => {
             </li>
             <li class="tab-link" data-tab="role-management-section">Role Management</li>
             <li class="tab-link" data-tab="quizzes-section" onclick="window.location.href='quizzes.html'">Quizzes</li>
-            <li class="tab-link" data-tab="logout-section" onclick="window.location.href='/pages/login'">Logout</li>
+            <li class="tab-link" data-tab="logout-section" onclick="window.location.href='/pages/login.html'">Logout</li>
         </ul>
     </aside>
 
@@ -2282,36 +2282,30 @@ window.fetch = async (input, init = {}) => {
 
 
 <!-- Transport Section -->
-<div id="transport-section" class="transport-tab" style="display:none;">
+<div id="transport-section" class="transport-tab">
     <h2>Transport Management</h2>
 
     <div class="transport-actions">
         <button class="btn" onclick="openTransportModal('busModal')">
             <i class="fas fa-bus"></i> Buses
         </button>
-
         <button class="btn" onclick="openTransportModal('routeModal')">
             <i class="fas fa-route"></i> Routes
         </button>
-
         <button class="btn" onclick="openTransportModal('driverModal')">
             <i class="fas fa-user-tie"></i> Drivers
         </button>
-
         <button class="btn" onclick="openTransportModal('studentTransportModal')">
             <i class="fas fa-user-graduate"></i> Students
         </button>
     </div>
 </div>
 
-<!-- Modals (all outside transport section) -->
-
-<!-- Bus Modal -->
+            <!-- Bus Modal -->
 <div class="transport-modal" id="busModal">
     <div class="transport-modal-content large">
         <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
         <h3>Bus Management</h3>
-
         <form class="grid-form">
             <input type="text" placeholder="Bus Number">
             <input type="text" placeholder="Plate Number">
@@ -2331,7 +2325,6 @@ window.fetch = async (input, init = {}) => {
     <div class="transport-modal-content large">
         <span class="close" onclick="closeTransportModal('routeModal')">&times;</span>
         <h3>Route Management</h3>
-
         <form class="grid-form">
             <input type="text" placeholder="Route Name">
             <select>
@@ -2358,7 +2351,7 @@ window.fetch = async (input, init = {}) => {
     </div>
 </div>
 
-<!-- Student Transport Modal -->
+<!-- Student Modal -->
 <div class="transport-modal" id="studentTransportModal">
     <div class="transport-modal-content large">
         <span class="close" onclick="closeTransportModal('studentTransportModal')">&times;</span>
@@ -2377,6 +2370,7 @@ window.fetch = async (input, init = {}) => {
         </form>
     </div>
 </div>
+
 
             <!-- Bulk Actions Toolbar for Events -->
             <div id="events-bulk-toolbar" style="display:none; margin-bottom: 10px;">
