@@ -1520,11 +1520,14 @@ li .avatar {
 
 
 /* Show / hide tab */
-.tab-content {
-    display: none;
+.transport-tab {
+    display: none;      /* hidden by default */
+    padding: 20px;
+    background: #fff;   /* optional, just to see it clearly */
 }
 
-.tab-content.active {
+/* When active */
+.transport-tab.active {
     display: block;
 }
 
