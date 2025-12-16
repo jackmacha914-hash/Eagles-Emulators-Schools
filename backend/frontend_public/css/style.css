@@ -1513,8 +1513,11 @@ li .avatar {
    TRANSPORT TAB BASE
 ================================ */
 #transport-section {
+    display: block;    /* force visible */
     padding: 20px;
+    background: #fff;  /* optional, just to see it */
 }
+
 
 /* Show / hide tab */
 .tab-content {
