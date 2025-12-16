@@ -1509,6 +1509,129 @@ li .avatar {
   height: 200px;
 }
 /*transport */
+/* ===============================
+   TRANSPORT TAB BASE
+================================ */
+#transport-section {
+    padding: 20px;
+}
+
+/* Show / hide tab */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ===============================
+   ACTION BUTTONS
+================================ */
+.transport-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.btn {
+    background: #1e88e5;
+    color: #fff;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background: #1565c0;
+}
+
+.full {
+    width: 100%;
+}
+
+/* ===============================
+   TRANSPORT MODALS (ISOLATED)
+================================ */
+.transport-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 3000;
+}
+
+.transport-modal-content {
+    background: #fff;
+    padding: 20px;
+    margin: 4% auto;
+    width: 420px;
+    border-radius: 6px;
+    position: relative;
+}
+
+.transport-modal-content.large {
+    width: 720px;
+}
+
+/* Close button */
+.transport-modal .close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* ===============================
+   FORMS
+================================ */
+.grid-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.grid-form input,
+.grid-form select,
+.grid-form textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.grid-form textarea,
+.grid-form button {
+    grid-column: span 2;
+}
+
+/* ===============================
+   TABLE
+================================ */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 13px;
+}
+
+.table th {
+    background: #f1f1f1;
+}
+
+/* ===============================
+   ACTION ICONS (YOUR PART)
+================================ */
 .actions {
     display: flex;
     gap: 6px;
@@ -1535,6 +1658,9 @@ li .avatar {
     color: #fff;
 }
 
+/* ===============================
+   PICKUP POINTS
+================================ */
 .pickup-section {
     grid-column: span 2;
 }
@@ -1565,3 +1691,4 @@ li .avatar {
     color: #d32f2f;
     font-weight: bold;
 }
+
