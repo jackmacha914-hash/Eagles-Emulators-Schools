@@ -1,22 +1,23 @@
-/* ====================================
-   TRANSPORT MODALS CONTROL
-==================================== */
-function openTransportModal(id) {
-    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
-    const modal = document.getElementById(id);
-    if(modal) modal.style.display = 'block';
-}
+document.addEventListener('DOMContentLoaded', function() {
 
-function closeTransportModal(id) {
-    const modal = document.getElementById(id);
-    if(modal) modal.style.display = 'none';
-}
+    // Open transport modal
+    window.openTransportModal = function(id) {
+        document.querySelectorAll('#transport-section .transport-modal').forEach(m => m.style.display = 'none');
+        const modal = document.getElementById(id);
+        if(modal) modal.style.display = 'block';
+    };
 
-// Close modal when clicking overlay
-window.addEventListener('click', e => {
-    if(e.target.classList.contains('transport-modal')){
-        e.target.style.display = 'none';
-    }
+    // Close transport modal
+    window.closeTransportModal = function(id) {
+        const modal = document.getElementById(id);
+        if(modal) modal.style.display = 'none';
+    };
+
+    // Close modal when clicking overlay
+    window.addEventListener('click', function(e) {
+        if(e.target.classList.contains('transport-modal')) {
+            e.target.style.display = 'none';
+        }
+    });
+
 });
-
-
