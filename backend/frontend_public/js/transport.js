@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Open transport modal
     window.openTransportModal = function(id) {
-        document.querySelectorAll('#transport-section .transport-modal').forEach(m => m.style.display = 'none');
+        // Hide all transport modals
+        document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
         const modal = document.getElementById(id);
         if(modal) modal.style.display = 'block';
     };
