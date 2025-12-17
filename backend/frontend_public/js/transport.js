@@ -333,6 +333,35 @@ window.saveFee = async function () {
         alert('Failed to save fee');
     }
 };
+    // ---------------------------
+// TRANSPORT PAYMENTS
+// ---------------------------
+window.saveTransportPayment = async function() {
+    const studentId = document.getElementById('payment-student').value;
+    const routeId = document.getElementById('payment-route').value;
+    const amount = document.getElementById('payment-amount').value;
+    const method = document.getElementById('payment-method').value;
+
+    if (!studentId || !routeId || !amount || !method) {
+        alert('Please fill all payment fields');
+        return;
+    }
+
+    try {
+        await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId, routeId, amount, method })
+        });
+
+        closeTransportModal('paymentsModal');
+        alert('Payment saved successfully');
+    } catch (err) {
+        console.error('Error saving payment:', err);
+        alert('Failed to save payment');
+    }
+};
+
 
 
     // ---------------------------
