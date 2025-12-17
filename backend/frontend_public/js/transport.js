@@ -40,6 +40,26 @@ async function loadRoutesDropdown(selectId) {
         console.error('Error loading routes:', err);
     }
 }
+async function loadStudentsDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const res = await fetch('https://eagles-emulators-schools.onrender.com/api/students'); // adjust route if needed
+        const students = await res.json();
+
+        select.innerHTML = ''; // clear old options
+        students.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student._id;
+            option.text = student.name; // use full name
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error loading students:', err);
+    }
+}
+
 
 // transport.js
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(id === 'studentTransportModal') {
         loadBusesDropdown('student-bus'); // Populate bus dropdown for student assignments
         loadRoutesDropdown('student-route'); // Populate route dropdown for student assignments
+        loadStudentsDropdown('student-id'); // Student select
     }
     };
 
