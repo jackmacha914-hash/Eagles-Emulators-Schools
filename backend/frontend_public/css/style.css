@@ -1511,15 +1511,16 @@ li .avatar {
 
 /* Transport Modal Overlay */
 .transport-modal {
-  display: none;          /* hidden by default */
+  display: none;           /* hidden initially */
   position: fixed;
-  inset: 0;               /* top:0; right:0; bottom:0; left:0 */
+  inset: 0;                /* top/right/bottom/left 0 */
   background: rgba(0,0,0,0.5);
   z-index: 9999;
   justify-content: center;
   align-items: center;
-  display: flex;          /* center content */
+  display: flex;           /* only used when JS sets display */
 }
+
 
 /* Transport Modal Content */
 .transport-modal-content {
