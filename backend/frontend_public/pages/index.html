@@ -1755,6 +1755,47 @@ window.fetch = async (input, init = {}) => {
         <!-- Library Section (Modernized) -->
         <section id="library-section" class="tab-section" style="display:none;">
             <h2>Library Management</h2>
+
+            <!-- Transport Section -->
+<section id="transport-section" class="tab-section">
+    <h2>Transport Management</h2>
+
+    <div class="transport-actions">
+        <button class="btn" onclick="openTransportModal('busModal')">
+            <i class="fas fa-bus"></i> Buses
+        </button>
+        <button class="btn" onclick="openTransportModal('routeModal')">
+            <i class="fas fa-route"></i> Routes
+        </button>
+        <button class="btn" onclick="openTransportModal('driverModal')">
+            <i class="fas fa-user-tie"></i> Drivers
+        </button>
+        <button class="btn" onclick="openTransportModal('studentTransportModal')">
+            <i class="fas fa-user-graduate"></i> Students
+        </button>
+    </div>
+
+    <!-- ==================== Modals ==================== -->
+
+    <!-- Bus Modal -->
+    <div class="transport-modal" id="busModal">
+        <div class="transport-modal-content large">
+            <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
+            <h3>Bus Management</h3>
+            <form class="grid-form">
+                <input type="text" placeholder="Bus Number">
+                <input type="text" placeholder="Plate Number">
+                <input type="number" placeholder="Capacity">
+                <select>
+                    <option>Status</option>
+                    <option>Active</option>
+                    <option>Maintenance</option>
+                </select>
+                <button class="btn full">Save Bus</button>
+            </form>
+        </div>
+    </div>
+
             
             <!-- Library Tabs -->
             <div class="library-tabs">
