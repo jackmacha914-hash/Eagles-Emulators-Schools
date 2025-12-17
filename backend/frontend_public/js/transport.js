@@ -1,4 +1,27 @@
 // transport.js
+
+// 1️⃣ Add this function at the top of the file or anywhere outside DOMContentLoaded
+async function loadBusesDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/buses');
+        const buses = await res.json();
+
+        select.innerHTML = ''; // clear old options
+        buses.forEach(bus => {
+            const option = document.createElement('option');
+            option.value = bus._id;
+            option.text = `${bus.number} (${bus.plate})`;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error loading buses:', err);
+    }
+}
+
+// transport.js
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = "https://eagles-emulators-schools.onrender.com/api/transport";
 
