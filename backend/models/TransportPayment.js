@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const transportPaymentSchema = new mongoose.Schema({
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
-    routeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Route', required: true },
+    routeId: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportRoute', required: true },
     fee: { type: Number, required: true },      // The expected fee for this route
     amountPaid: { type: Number, required: true },
     balance: { type: Number, default: 0 },      // Fee - amountPaid
