@@ -89,6 +89,8 @@ app.use('/api/library', require('./routes/library'));
 app.use('/api/marks', require('./routes/marksRoutes'));
 app.use('/api/quizzes', require('./routes/quizRoutes'));
 app.use('/api/health', require('./routes/health'));
+app.use('/api/transport', require('./routes/transportRoutes'));
+
 
 // -------------------------
 // FRONTEND ROUTES
