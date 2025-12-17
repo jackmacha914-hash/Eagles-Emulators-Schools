@@ -1977,6 +1977,10 @@ window.fetch = async (input, init = {}) => {
         <button class="btn" onclick="openTransportModal('feesModal')">
             <i class="fas fa-money-bill"></i> Fees
         </button>
+        <button class="btn" onclick="openTransportModal('paymentsModal')">
+        <i class="fas fa-wallet"></i> Payments
+        </button>
+
         <button class="btn" onclick="openTransportModal('attendanceModal')">
             <i class="fas fa-check-circle"></i> Attendance
         </button>
@@ -2114,6 +2118,42 @@ window.fetch = async (input, init = {}) => {
             <button type="button" class="btn full" onclick="saveFee()">Save Fee</button>
         </form>
     </div>
+</div>
+
+    <!-- Transport Payments Modal -->
+<div class="transport-modal" id="paymentsModal">
+  <div class="transport-modal-content">
+    <span class="close" onclick="closeTransportModal('paymentsModal')">&times;</span>
+    <h3>Transport Payments</h3>
+    <form class="grid-form">
+      <select id="payment-student">
+        <option>Select Student</option>
+      </select>
+      <select id="payment-route">
+        <option>Select Route</option>
+      </select>
+      <input type="number" id="payment-amount" placeholder="Amount">
+      <select id="payment-method">
+        <option>Cash</option>
+        <option>Mpesa</option>
+        <option>Bank Transfer</option>
+      </select>
+      <button type="button" class="btn full" onclick="saveTransportPayment()">Record Payment</button>
+    </form>
+    <table class="table" id="payment-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Route</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Attendance Modal -->
