@@ -2133,6 +2133,13 @@ window.fetch = async (input, init = {}) => {
         <option>Select Route</option>
       </select>
       <input type="number" id="payment-amount" placeholder="Amount">
+        <select id="payment-term">
+        <option>Term 1</option>
+      <option>Term 2</option>
+      <option>Term 3</option>
+      </select>
+      <input type="number" id="payment-year" placeholder="Year" value="2025">
+
       <select id="payment-method">
         <option>Cash</option>
         <option>Mpesa</option>
@@ -2141,6 +2148,15 @@ window.fetch = async (input, init = {}) => {
       <button type="button" class="btn full" onclick="saveTransportPayment()">Record Payment</button>
     </form>
     <table class="table" id="payment-table">
+        <select id="filter-term">
+  <option value="">All Terms</option>
+  <option>Term 1</option>
+  <option>Term 2</option>
+  <option>Term 3</option>
+</select>
+<input type="number" id="filter-year" placeholder="All Years">
+<button onclick="loadTransportPayments()">Filter</button>
+
       <thead>
         <tr>
           <th>Student</th>
