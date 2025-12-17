@@ -61,6 +61,7 @@ async function loadStudentsDropdown(selectId) {
 }
 
 
+
 // transport.js
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = "https://eagles-emulators-schools.onrender.com/api/transport";
@@ -86,9 +87,10 @@ window.openTransportModal = function(id) {
     }
     if (id === 'feesModal') loadRoutesDropdown('fees-route');
     if (id === 'paymentsModal') {
-        loadStudentsDropdown('payment-student');
-        loadRoutesDropdown('payment-route');
-    }
+    loadStudentsDropdown('payment-student');
+    loadRoutesDropdown('payment-route');
+    loadTransportPayments();
+}
 };
 
 // Close modal function
@@ -218,7 +220,7 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
-    async function loadTransportPayments() {
+   async function loadTransportPayments() {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
@@ -226,22 +228,26 @@ window.addEventListener('click', e => {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
         const payments = await res.json();
 
+        if (!Array.isArray(payments)) {
+            console.error('Payments is not an array:', payments);
+            return;
+        }
+
         tbody.innerHTML = payments.map(p => `
             <tr>
                 <td>${p.studentId?.name || '-'}</td>
                 <td>${p.routeId?.name || '-'}</td>
-                <td>${p.amount}</td>
+                <td>${p.amountPaid}</td>
                 <td>${p.method}</td>
+                <td>${p.term} / ${p.year}</td>
                 <td>${new Date(p.createdAt).toLocaleDateString()}</td>
-                <td>
-                    <button onclick="deleteTransportPayment('${p._id}')">Delete</button>
-                </td>
             </tr>
         `).join('');
     } catch (err) {
         console.error('Error loading payments:', err);
     }
 }
+
 
     window.deleteTransportPayment = async function(id) {
     if (!confirm('Delete this payment?')) return;
@@ -375,13 +381,15 @@ window.saveFee = async function () {
     // ---------------------------
 // TRANSPORT PAYMENTS
 // ---------------------------
-window.saveTransportPayment = async function() {
+window.saveTransportPayment = async function () {
     const studentId = document.getElementById('payment-student').value;
     const routeId = document.getElementById('payment-route').value;
-    const amount = document.getElementById('payment-amount').value;
+    const amountPaid = document.getElementById('payment-amount').value;
+    const term = document.getElementById('payment-term').value;
+    const year = document.getElementById('payment-year').value;
     const method = document.getElementById('payment-method').value;
 
-    if (!studentId || !routeId || !amount || !method) {
+    if (!studentId || !routeId || !amountPaid || !term || !year || !method) {
         alert('Please fill all payment fields');
         return;
     }
@@ -390,18 +398,23 @@ window.saveTransportPayment = async function() {
         await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId, routeId, amount, method })
+            body: JSON.stringify({
+                studentId,
+                routeId,
+                amountPaid,
+                term,
+                year,
+                method
+            })
         });
 
-        closeTransportModal('paymentsModal');
         alert('Payment saved successfully');
+        loadTransportPayments();
     } catch (err) {
         console.error('Error saving payment:', err);
         alert('Failed to save payment');
     }
 };
-
-
 
     // ---------------------------
     // INITIAL LOAD
