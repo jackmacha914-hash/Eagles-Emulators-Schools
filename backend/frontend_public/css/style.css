@@ -1511,26 +1511,25 @@ li .avatar {
 
 /* Transport Modal Overlay */
 .transport-modal {
-  display: none;           /* hidden initially */
+box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.transport-modal {
+  display: none;
   position: fixed;
-  inset: 0;                /* top/right/bottom/left 0 */
+  inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 9999;
   justify-content: center;
   align-items: center;
-  display: flex;           /* only used when JS sets display */
 }
 
-
-/* Transport Modal Content */
 .transport-modal-content {
   background: #fff;
   padding: 20px;
   border-radius: 6px;
-  width: 500px;
+  width: 400px;
   max-width: 90%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
 }
-
 
 
