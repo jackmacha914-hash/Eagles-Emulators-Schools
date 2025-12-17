@@ -91,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
 }     
     };
 
+    if(id === 'paymentsModal') {
+        loadStudentsDropdown('payment-student'); // Populate student dropdown
+        loadRoutesDropdown('payment-route');     // Populate route dropdown
+
     window.closeTransportModal = function(id) {
         const modal = document.getElementById(id);
         if(modal) modal.style.display = 'none';
