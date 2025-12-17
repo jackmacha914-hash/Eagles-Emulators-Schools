@@ -1,119 +1,235 @@
-document.addEventListener('DOMContentLoaded', function() {
+// transport.js
+document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = "https://eagles-emulators-schools.onrender.com/api/transport";
 
-  // Modal logic
-  window.openTransportModal = function(id) {
-      document.querySelectorAll('.transport-modal').forEach(m => m.style.display='none');
-      const modal = document.getElementById(id);
-      if(modal) modal.style.display='flex';
-  };
+    // ---------------------------
+    // MODAL HANDLING
+    // ---------------------------
+    window.openTransportModal = function(id) {
+        document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
+        const modal = document.getElementById(id);
+        if(modal) modal.style.display = 'flex';
+    };
 
-  window.closeTransportModal = function(id) {
-      const modal = document.getElementById(id);
-      if(modal) modal.style.display='none';
-  };
+    window.closeTransportModal = function(id) {
+        const modal = document.getElementById(id);
+        if(modal) modal.style.display = 'none';
+    };
 
-  window.addEventListener('click', function(e) {
-      if(e.target.classList.contains('transport-modal')) {
-          e.target.style.display='none';
-      }
-  });
+    window.addEventListener('click', e => {
+        if(e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
+    });
 
-  // DATA STORAGE
-  window.buses = [];
-  window.routes = [];
-  window.drivers = [];
-  window.studentTransport = [];
-  window.fees = [];
+    // ---------------------------
+    // BUS FUNCTIONS
+    // ---------------------------
+    const busTableBody = document.querySelector('#bus-table tbody');
 
-  // BUS FUNCTIONS
-  window.saveBus = function() {
-      const bus = {
-          id: Date.now(),
-          number: document.getElementById('bus-number').value,
-          plate: document.getElementById('bus-plate').value,
-          capacity: document.getElementById('bus-capacity').value,
-          status: document.getElementById('bus-status').value
-      };
-      if(!bus.number || !bus.plate || !bus.capacity) { alert('Fill all fields'); return; }
-      buses.push(bus); renderBusTable(); closeTransportModal('busModal'); populateBusSelect();
-  };
+    async function loadBuses() {
+        try {
+            const res = await fetch(`${API_BASE}/buses`);
+            const buses = await res.json();
+            if(busTableBody) {
+                busTableBody.innerHTML = buses.map(bus => `
+                    <tr>
+                        <td>${bus.number}</td>
+                        <td>${bus.plate}</td>
+                        <td>${bus.capacity}</td>
+                        <td>${bus.status}</td>
+                        <td>
+                            <button onclick="editBus('${bus._id}')">Edit</button>
+                            <button onclick="deleteBus('${bus._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error("Error loading buses:", err);
+        }
+    }
 
-  function renderBusTable() {
-      const tbody = document.querySelector('#bus-table tbody');
-      tbody.innerHTML = buses.map(b=>`
-          <tr>
-              <td>${b.number}</td>
-              <td>${b.plate}</td>
-              <td>${b.capacity}</td>
-              <td>${b.status}</td>
-              <td>
-                  <button onclick="editBus(${b.id})">Edit</button>
-                  <button onclick="deleteBus(${b.id})">Delete</button>
-              </td>
-          </tr>
-      `).join('');
-  }
+    window.saveBus = async function() {
+        const number = document.querySelector('#bus-number').value;
+        const plate = document.querySelector('#bus-plate').value;
+        const capacity = document.querySelector('#bus-capacity').value;
+        const status = document.querySelector('#bus-status').value;
 
-  window.editBus = function(id) {
-      const b = buses.find(x=>x.id===id);
-      if(!b) return;
-      document.getElementById('bus-number').value=b.number;
-      document.getElementById('bus-plate').value=b.plate;
-      document.getElementById('bus-capacity').value=b.capacity;
-      document.getElementById('bus-status').value=b.status;
-      buses = buses.filter(x=>x.id!==id);
-      openTransportModal('busModal');
-  };
+        try {
+            await fetch(`${API_BASE}/buses`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ number, plate, capacity, status })
+            });
+            closeTransportModal('busModal');
+            loadBuses();
+        } catch (err) {
+            console.error("Error saving bus:", err);
+        }
+    };
 
-  window.deleteBus = function(id) { if(confirm('Delete?')) { buses=buses.filter(x=>x.id!==id); renderBusTable(); populateBusSelect(); } };
+    window.deleteBus = async function(id) {
+        if(!confirm('Are you sure you want to delete this bus?')) return;
+        try {
+            await fetch(`${API_BASE}/buses/${id}`, { method: 'DELETE' });
+            loadBuses();
+        } catch (err) {
+            console.error("Error deleting bus:", err);
+        }
+    };
 
-  function populateBusSelect() {
-      const busSelects = [document.getElementById('route-bus'), document.getElementById('driver-bus'), document.getElementById('student-bus')];
-      busSelects.forEach(select=>{
-          if(select) {
-              select.innerHTML='<option>Select Bus</option>'+buses.map(b=>`<option value="${b.id}">${b.number}</option>`).join('');
-          }
-      });
-  }
+    window.editBus = async function(id) {
+        const res = await fetch(`${API_BASE}/buses`);
+        const buses = await res.json();
+        const bus = buses.find(b => b._id === id);
+        if(bus) {
+            document.querySelector('#bus-number').value = bus.number;
+            document.querySelector('#bus-plate').value = bus.plate;
+            document.querySelector('#bus-capacity').value = bus.capacity;
+            document.querySelector('#bus-status').value = bus.status;
+            openTransportModal('busModal');
+        }
+    };
 
-  // ROUTE FUNCTIONS
-  window.saveRoute = function() {
-      const route = { id: Date.now(), name: document.getElementById('route-name').value, busId: document.getElementById('route-bus').value };
-      if(!route.name) { alert('Enter route name'); return; }
-      routes.push(route); renderRouteTable(); closeTransportModal('routeModal'); populateRouteSelect();
-  };
+    // ---------------------------
+    // ROUTES FUNCTIONS
+    // ---------------------------
+    async function loadRoutes() {
+        try {
+            const res = await fetch(`${API_BASE}/routes`);
+            const routes = await res.json();
+            const tbody = document.querySelector('#route-table tbody');
+            if(tbody) {
+                tbody.innerHTML = routes.map(r => `
+                    <tr>
+                        <td>${r.name}</td>
+                        <td>${r.busId ? r.busId.number : '-'}</td>
+                        <td>
+                            <button onclick="editRoute('${r._id}')">Edit</button>
+                            <button onclick="deleteRoute('${r._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch(err) {
+            console.error("Error loading routes:", err);
+        }
+    }
 
-  function renderRouteTable() {
-      const tbody=document.querySelector('#route-table tbody');
-      tbody.innerHTML=routes.map(r=>{
-          const bus = buses.find(b=>b.id==r.busId);
-          return `<tr>
-              <td>${r.name}</td>
-              <td>${bus?bus.number:'N/A'}</td>
-              <td>
-                  <button onclick="editRoute(${r.id})">Edit</button>
-                  <button onclick="deleteRoute(${r.id})">Delete</button>
-              </td>
-          </tr>`;
-      }).join('');
-  }
+    window.saveRoute = async function() {
+        const name = document.querySelector('#route-name').value;
+        const busId = document.querySelector('#route-bus').value;
+        try {
+            await fetch(`${API_BASE}/routes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, busId })
+            });
+            closeTransportModal('routeModal');
+            loadRoutes();
+        } catch(err) { console.error(err); }
+    };
 
-  window.editRoute=function(id){ const r=routes.find(x=>x.id===id); if(!r)return; document.getElementById('route-name').value=r.name; document.getElementById('route-bus').value=r.busId; routes=routes.filter(x=>x.id!==id); openTransportModal('routeModal'); };
-  window.deleteRoute=function(id){ if(confirm('Delete?')){ routes=routes.filter(x=>x.id!==id); renderRouteTable(); populateRouteSelect(); } };
+    window.deleteRoute = async function(id) {
+        if(!confirm('Delete this route?')) return;
+        await fetch(`${API_BASE}/routes/${id}`, { method: 'DELETE' });
+        loadRoutes();
+    };
 
-  function populateRouteSelect(){ const select=document.getElementById('student-route'); if(select) select.innerHTML='<option>Select Route</option>'+routes.map(r=>`<option value="${r.id}">${r.name}</option>`).join(''); }
+    // ---------------------------
+    // DRIVER FUNCTIONS
+    // ---------------------------
+    async function loadDrivers() {
+        try {
+            const res = await fetch(`${API_BASE}/drivers`);
+            const drivers = await res.json();
+            const tbody = document.querySelector('#driver-table tbody');
+            if(tbody) {
+                tbody.innerHTML = drivers.map(d => `
+                    <tr>
+                        <td>${d.name}</td>
+                        <td>${d.license}</td>
+                        <td>${d.busId ? d.busId.number : '-'}</td>
+                        <td>
+                            <button onclick="editDriver('${d._id}')">Edit</button>
+                            <button onclick="deleteDriver('${d._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch(err) { console.error(err); }
+    }
 
-  // DRIVER FUNCTIONS
-  window.saveDriver=function(){ const d={ id:Date.now(), name:document.getElementById('driver-name').value, license:document.getElementById('driver-license').value, busId:document.getElementById('driver-bus').value }; if(!d.name || !d.license) { alert('Fill all fields'); return; } drivers.push(d); renderDriverTable(); closeTransportModal('driverModal'); };
-  function renderDriverTable(){ const tbody=document.querySelector('#driver-table tbody'); tbody.innerHTML=drivers.map(d=>{ const bus=buses.find(b=>b.id==d.busId); return `<tr><td>${d.name}</td><td>${bus?bus.number:'N/A'}</td><td><button onclick="editDriver(${d.id})">Edit</button><button onclick="deleteDriver(${d.id})">Delete</button></td></tr>` }).join(''); }
-  window.editDriver=function(id){ const d=drivers.find(x=>x.id===id); if(!d)return; document.getElementById('driver-name').value=d.name; document.getElementById('driver-license').value=d.license; document.getElementById('driver-bus').value=d.busId; drivers=drivers.filter(x=>x.id!==id); openTransportModal('driverModal'); };
-  window.deleteDriver=function(id){ if(confirm('Delete?')){ drivers=drivers.filter(x=>x.id!==id); renderDriverTable(); }
+    window.saveDriver = async function() {
+        const name = document.querySelector('#driver-name').value;
+        const license = document.querySelector('#driver-license').value;
+        const busId = document.querySelector('#driver-bus').value;
+        try {
+            await fetch(`${API_BASE}/drivers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, license, busId })
+            });
+            closeTransportModal('driverModal');
+            loadDrivers();
+        } catch(err) { console.error(err); }
+    };
 
-  };
+    window.deleteDriver = async function(id) {
+        if(!confirm('Delete this driver?')) return;
+        await fetch(`${API_BASE}/drivers/${id}`, { method: 'DELETE' });
+        loadDrivers();
+    }
 
-  // STUDENT TRANSPORT
-  window.assignStudentTransport=function(){ const s=document.getElementById('student-select').value; const r=document.getElementById('student-route').value; const b=document.getElementById('student-bus').value; if(!s || !r || !b) { alert('Fill all fields'); return; } studentTransport.push({id:Date.now(), student:s, route:r, bus:b}); renderStudentTransportTable(); closeTransportModal('studentTransportModal'); };
-  function renderStudentTransportTable(){ const tbody=document.querySelector('#student-transport-table tbody'); tbody.innerHTML=studentTransport.map(st=>{ const route=routes.find(r=>r.id==st.route); const bus=buses.find(b=>b.id==st.bus); return `<tr><td>${st.student}</td><td>${route?route.name:'N/A'}</td><td>${bus?bus.number:'N/A'}</td><td><button onclick="deleteStudentTransport(${st.id})">Delete</button></td></tr>` }).join(''); }
-  window.deleteStudentTransport=function(id){ studentTransport=studentTransport.filter(x=>x.id!==id); renderStudentTransportTable(); };
+    // ---------------------------
+    // STUDENT TRANSPORT ASSIGNMENTS
+    // ---------------------------
+    async function loadStudentAssignments() {
+        try {
+            const res = await fetch(`${API_BASE}/assignments`);
+            const assignments = await res.json();
+            const tbody = document.querySelector('#student-transport-table tbody');
+            if(tbody) {
+                tbody.innerHTML = assignments.map(a => `
+                    <tr>
+                        <td>${a.studentId}</td>
+                        <td>${a.busId ? a.busId.number : '-'}</td>
+                        <td>${a.routeId ? a.routeId.name : '-'}</td>
+                        <td>
+                            <button onclick="deleteStudentAssignment('${a._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch(err) { console.error(err); }
+    }
 
+    window.saveStudentAssignment = async function() {
+        const studentId = document.querySelector('#student-id').value;
+        const busId = document.querySelector('#student-bus').value;
+        const routeId = document.querySelector('#student-route').value;
+
+        try {
+            await fetch(`${API_BASE}/assignments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studentId, busId, routeId })
+            });
+            closeTransportModal('studentTransportModal');
+            loadStudentAssignments();
+        } catch(err) { console.error(err); }
+    }
+
+    window.deleteStudentAssignment = async function(id) {
+        if(!confirm('Delete this assignment?')) return;
+        await fetch(`${API_BASE}/assignments/${id}`, { method: 'DELETE' });
+        loadStudentAssignments();
+    }
+
+    // ---------------------------
+    // INITIAL LOAD
+    // ---------------------------
+    loadBuses();
+    loadRoutes();
+    loadDrivers();
+    loadStudentAssignments();
 });
