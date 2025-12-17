@@ -1956,25 +1956,197 @@ window.fetch = async (input, init = {}) => {
                 </div>
             </div>
         </section>
-<section id="transport-section" class="tab-section">
-  <h2>Transport Management</h2>
-  <div class="transport-actions">
-    <button class="btn" onclick="openTransportModal('busModal')">Buses</button>
-    <button class="btn" onclick="openTransportModal('routeModal')">Routes</button>
-  </div>
+<!-- Transport Section -->
+<section id="transport-section" class="tab-section" style="display:none;">
+    <h2>Transport Management</h2>
+
+    <!-- Action Buttons -->
+    <div class="transport-actions">
+        <button class="btn" onclick="openTransportModal('busModal')">
+            <i class="fas fa-bus"></i> Buses
+        </button>
+        <button class="btn" onclick="openTransportModal('routeModal')">
+            <i class="fas fa-route"></i> Routes
+        </button>
+        <button class="btn" onclick="openTransportModal('driverModal')">
+            <i class="fas fa-user-tie"></i> Drivers
+        </button>
+        <button class="btn" onclick="openTransportModal('studentTransportModal')">
+            <i class="fas fa-user-graduate"></i> Students
+        </button>
+        <button class="btn" onclick="openTransportModal('feesModal')">
+            <i class="fas fa-money-bill"></i> Fees
+        </button>
+        <button class="btn" onclick="openTransportModal('attendanceModal')">
+            <i class="fas fa-check-circle"></i> Attendance
+        </button>
+        <button class="btn" onclick="openTransportModal('reportModal')">
+            <i class="fas fa-chart-bar"></i> Reports
+        </button>
+    </div>
 </section>
 
-<!-- Modals -->
+<!-- ==================== MODALS ==================== -->
+
+<!-- Bus Modal -->
 <div class="transport-modal" id="busModal">
-  <div class="transport-modal-content">
-    <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
-    <h3>Bus Management</h3>
-    <form class="grid-form">
-      <input type="text" placeholder="Bus Number">
-      <button class="btn full">Save Bus</button>
-    </form>
-  </div>
+    <div class="transport-modal-content large">
+        <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
+        <h3>Bus Management</h3>
+        <form class="grid-form">
+            <input type="text" id="bus-number" placeholder="Bus Number">
+            <input type="text" id="bus-plate" placeholder="Plate Number">
+            <input type="number" id="bus-capacity" placeholder="Capacity">
+            <select id="bus-status">
+                <option>Status</option>
+                <option>Active</option>
+                <option>Maintenance</option>
+            </select>
+            <button type="button" class="btn full" onclick="saveBus()">Save Bus</button>
+        </form>
+        <table class="table" id="bus-table">
+            <thead>
+                <tr>
+                    <th>Bus</th>
+                    <th>Plate</th>
+                    <th>Capacity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
+
+<!-- Route Modal -->
+<div class="transport-modal" id="routeModal">
+    <div class="transport-modal-content large">
+        <span class="close" onclick="closeTransportModal('routeModal')">&times;</span>
+        <h3>Route Management</h3>
+        <form class="grid-form">
+            <input type="text" id="route-name" placeholder="Route Name">
+            <select id="route-bus">
+                <option>Select Bus</option>
+            </select>
+            <button type="button" class="btn full" onclick="saveRoute()">Save Route</button>
+        </form>
+        <table class="table" id="route-table">
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>Bus</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Driver Modal -->
+<div class="transport-modal" id="driverModal">
+    <div class="transport-modal-content">
+        <span class="close" onclick="closeTransportModal('driverModal')">&times;</span>
+        <h3>Driver Assignment</h3>
+        <form class="grid-form">
+            <input type="text" id="driver-name" placeholder="Driver Name">
+            <input type="text" id="driver-license" placeholder="License Number">
+            <select id="driver-bus">
+                <option>Assign Bus</option>
+            </select>
+            <button type="button" class="btn full" onclick="saveDriver()">Assign Driver</button>
+        </form>
+        <table class="table" id="driver-table">
+            <thead>
+                <tr>
+                    <th>Driver</th>
+                    <th>Bus</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Student Transport Modal -->
+<div class="transport-modal" id="studentTransportModal">
+    <div class="transport-modal-content large">
+        <span class="close" onclick="closeTransportModal('studentTransportModal')">&times;</span>
+        <h3>Student Transport Assignment</h3>
+        <form class="grid-form">
+            <select id="student-select">
+                <option>Select Student</option>
+            </select>
+            <select id="student-route">
+                <option>Select Route</option>
+            </select>
+            <select id="student-bus">
+                <option>Select Bus</option>
+            </select>
+            <button type="button" class="btn full" onclick="assignStudentTransport()">Assign</button>
+        </form>
+        <table class="table" id="student-transport-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Route</th>
+                    <th>Bus</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Transport Fees Modal -->
+<div class="transport-modal" id="feesModal">
+    <div class="transport-modal-content">
+        <span class="close" onclick="closeTransportModal('feesModal')">&times;</span>
+        <h3>Transport Fees</h3>
+        <form>
+            <select id="fees-route">
+                <option>Select Route</option>
+            </select>
+            <input type="number" id="fees-amount" placeholder="Monthly Fee">
+            <button type="button" class="btn full" onclick="saveFee()">Save Fee</button>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="transport-modal" id="attendanceModal">
+    <div class="transport-modal-content large">
+        <span class="close" onclick="closeTransportModal('attendanceModal')">&times;</span>
+        <h3>Transport Attendance</h3>
+        <table class="table" id="attendance-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Bus</th>
+                    <th>Present</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Reports Modal -->
+<div class="transport-modal" id="reportModal">
+    <div class="transport-modal-content">
+        <span class="close" onclick="closeTransportModal('reportModal')">&times;</span>
+        <h3>Transport Reports</h3>
+        <select id="report-type">
+            <option>Daily</option>
+            <option>Monthly</option>
+        </select>
+        <button class="btn full" onclick="generateReport()">Generate Report</button>
+    </div>
+</div>
+
 
         <!-- Accountant Section (Modernized) -->
         <section id="accountant-section" class="tab-section" style="display:none;">
