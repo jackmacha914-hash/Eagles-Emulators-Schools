@@ -66,43 +66,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = "https://eagles-emulators-schools.onrender.com/api/transport";
 
     // ---------------------------
-    // MODAL HANDLING
-    // ---------------------------
-    window.openTransportModal = function(id) {
-        document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
-        const modal = document.getElementById(id);
-        if(modal) modal.style.display = 'flex';
-          // Populate dropdowns when the modal opens
-    if(id === 'routeModal') {
-        loadBusesDropdown('route-bus'); // Populate the bus dropdown for routes
+// MODAL HANDLING
+// ---------------------------
+window.openTransportModal = function(id) {
+    // Close all modals first
+    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
+
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    // Populate dropdowns depending on modal
+    if (id === 'routeModal') loadBusesDropdown('route-bus');
+    if (id === 'driverModal') loadBusesDropdown('driver-bus');
+    if (id === 'studentTransportModal') {
+        loadBusesDropdown('student-bus');
+        loadRoutesDropdown('student-route');
+        loadStudentsDropdown('student-id');
     }
-
-    if(id === 'driverModal') {
-        loadBusesDropdown('driver-bus'); // Populate the bus dropdown for drivers
+    if (id === 'feesModal') loadRoutesDropdown('fees-route');
+    if (id === 'paymentsModal') {
+        loadStudentsDropdown('payment-student');
+        loadRoutesDropdown('payment-route');
     }
+};
 
-    if(id === 'studentTransportModal') {
-        loadBusesDropdown('student-bus'); // Populate bus dropdown for student assignments
-        loadRoutesDropdown('student-route'); // Populate route dropdown for student assignments
-        loadStudentsDropdown('student-id'); // Student select
-    }
-        if (id === 'feesModal') {
-    loadRoutesDropdown('fees-route');
-}     
-    };
+// Close modal function
+window.closeTransportModal = function(id) {
+    const modal = document.getElementById(id);
+    if(modal) modal.style.display = 'none';
+};
 
-    if(id === 'paymentsModal') {
-        loadStudentsDropdown('payment-student'); // Populate student dropdown
-        loadRoutesDropdown('payment-route');     // Populate route dropdown
+// Close modal if clicked outside content
+window.addEventListener('click', e => {
+    if(e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
+});
 
-    window.closeTransportModal = function(id) {
-        const modal = document.getElementById(id);
-        if(modal) modal.style.display = 'none';
-    };
-
-    window.addEventListener('click', e => {
-        if(e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
-    });
 
     // ---------------------------
     // BUS FUNCTIONS
