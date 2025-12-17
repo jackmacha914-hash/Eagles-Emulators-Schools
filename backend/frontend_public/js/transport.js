@@ -21,6 +21,26 @@ async function loadBusesDropdown(selectId) {
     }
 }
 
+async function loadRoutesDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/routes');
+        const routes = await res.json();
+
+        select.innerHTML = ''; // clear old options
+        routes.forEach(route => {
+            const option = document.createElement('option');
+            option.value = route._id;
+            option.text = route.name;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error loading routes:', err);
+    }
+}
+
 // transport.js
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = "https://eagles-emulators-schools.onrender.com/api/transport";
