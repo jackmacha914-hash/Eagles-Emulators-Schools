@@ -1,9 +1,4 @@
 // routes/transportPayments.js
-const express = require('express');
-const router = express.Router();
-const TransportPayment = require('../models/TransportPayment');
-const TransportFee = require('../models/TransportFee'); // make sure this exists
-
 // POST: Create a new payment
 const express = require('express');
 const router = express.Router();
