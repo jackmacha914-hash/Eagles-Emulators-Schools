@@ -47,11 +47,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const payments = await TransportPayment.find();
-            .populate('studentId', 'name')
-            .populate('routeId', 'name');
-
         res.json(payments);
-    } catch (err) {
+    } 
+    catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
