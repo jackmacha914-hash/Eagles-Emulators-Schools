@@ -304,6 +304,33 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch(`${API_BASE}/assignments/${id}`, { method: 'DELETE' });
         loadStudentAssignments();
     }
+    // ---------------------------
+// TRANSPORT FEES
+// ---------------------------
+window.saveFee = async function () {
+    const routeId = document.getElementById('fees-route').value;
+    const amount = document.getElementById('fees-amount').value;
+
+    if (!routeId || !amount) {
+        alert('Please select a route and enter fee amount');
+        return;
+    }
+
+    try {
+        await fetch(`${API_BASE}/fees`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ routeId, amount })
+        });
+
+        closeTransportModal('feesModal');
+        alert('Transport fee saved successfully');
+    } catch (err) {
+        console.error('Error saving fee:', err);
+        alert('Failed to save fee');
+    }
+};
+
 
     // ---------------------------
     // INITIAL LOAD
