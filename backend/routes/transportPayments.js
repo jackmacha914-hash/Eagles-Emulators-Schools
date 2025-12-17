@@ -7,7 +7,9 @@ const TransportFee = require('../models/TransportFee'); // your fee model
 
 router.post('/', async (req, res) => {
     try {
-        const { studentId, routeId, amountPaid, term, year, method } = req.body;
+        const { amountPaid, term, year, method } = req.body;
+        const studentId = new mongoose.Types.ObjectId(req.body.studentId);
+        const routeId = new mongoose.Types.ObjectId(req.body.routeId);
 
         if (!studentId || !routeId || !amountPaid || !term || !year || !method) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -20,7 +22,7 @@ router.post('/', async (req, res) => {
         }
 
         const fee = feeRecord.amount;
-        const balance = fee - amountPaid;
+        const balance = Math.max(fee - amountPaid, 0);
 
         const payment = new TransportPayment({
             studentId,
@@ -44,7 +46,7 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const payments = await TransportPayment.find()
+        const payments = await TransportPayment.find();
             .populate('studentId', 'name')
             .populate('routeId', 'name');
 
@@ -58,4 +60,3 @@ router.get('/', async (req, res) => {
 module.exports = router;
 
 
-module.exports = router;
