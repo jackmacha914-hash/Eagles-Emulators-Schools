@@ -1956,32 +1956,25 @@ window.fetch = async (input, init = {}) => {
                 </div>
             </div>
         </section>
-<!--Transport -->
-        <section id="transport-section" class="tab-section" style="display:none;">
-    <h2>Transport Management</h2>
-
-    <div class="transport-actions">
-        <button class="btn">Buses</button>
-        <button class="btn">Routes</button>
-        <button class="btn">Drivers</button>
-        <button class="btn">Students</button>
-    </div>
+<section id="transport-section" class="tab-section">
+  <h2>Transport Management</h2>
+  <div class="transport-actions">
+    <button class="btn" onclick="openTransportModal('busModal')">Buses</button>
+    <button class="btn" onclick="openTransportModal('routeModal')">Routes</button>
+  </div>
 </section>
-<!--transport modal-->
-      <!-- Bus Modal -->
-<div id="busModal" class="transport-modal">
+
+<!-- Modals -->
+<div class="transport-modal" id="busModal">
   <div class="transport-modal-content">
     <span class="close" onclick="closeTransportModal('busModal')">&times;</span>
     <h3>Bus Management</h3>
-    <input type="text" placeholder="Bus Number">
-    <input type="text" placeholder="Plate Number">
-    <input type="number" placeholder="Capacity">
-    <button class="btn">Save Bus</button>
+    <form class="grid-form">
+      <input type="text" placeholder="Bus Number">
+      <button class="btn full">Save Bus</button>
+    </form>
   </div>
 </div>
-
-
-
 
         <!-- Accountant Section (Modernized) -->
         <section id="accountant-section" class="tab-section" style="display:none;">
