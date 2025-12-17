@@ -218,6 +218,45 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
+    async function loadTransportPayments() {
+    const tbody = document.querySelector('#payment-table tbody');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
+        const payments = await res.json();
+
+        tbody.innerHTML = payments.map(p => `
+            <tr>
+                <td>${p.studentId?.name || '-'}</td>
+                <td>${p.routeId?.name || '-'}</td>
+                <td>${p.amount}</td>
+                <td>${p.method}</td>
+                <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <button onclick="deleteTransportPayment('${p._id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading payments:', err);
+    }
+}
+
+    window.deleteTransportPayment = async function(id) {
+    if (!confirm('Delete this payment?')) return;
+
+    try {
+        await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/payments/${id}`, {
+            method: 'DELETE'
+        });
+        loadTransportPayments(); // refresh the table
+    } catch (err) {
+        console.error('Error deleting payment:', err);
+    }
+};
+
+
     // ---------------------------
     // DRIVER FUNCTIONS
     // ---------------------------
@@ -371,4 +410,5 @@ window.saveTransportPayment = async function() {
     loadRoutes();
     loadDrivers();
     loadStudentAssignments();
+    loadTransportPayments();
 });
