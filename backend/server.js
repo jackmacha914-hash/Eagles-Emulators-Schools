@@ -91,6 +91,8 @@ app.use('/api/quizzes', require('./routes/quizRoutes'));
 app.use('/api/health', require('./routes/health'));
 app.use('/api/transport', require('./routes/transportRoutes'));
 app.use('/api/transport/fees', require('./routes/transportFees'));
+app.use('/api/transport/payments', require('./routes/transportPayments');
+
 
 // -------------------------
 // FRONTEND ROUTES
