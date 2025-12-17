@@ -239,6 +239,7 @@ window.addEventListener('click', e => {
                 <td>${p.routeId?.name || '-'}</td>
                 <td>${p.amountPaid}</td>
                 <td>${p.method}</td>
+                <td>${p.balance}</td>
                 <td>${p.term} / ${p.year}</td>
                 <td>${new Date(p.createdAt).toLocaleDateString()}</td>
             </tr>
