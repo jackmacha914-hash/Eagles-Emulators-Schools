@@ -86,6 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadRoutesDropdown('student-route'); // Populate route dropdown for student assignments
         loadStudentsDropdown('student-id'); // Student select
     }
+        if (id === 'feesModal') {
+    loadRoutesDropdown('fees-route');
+}     
     };
 
     window.closeTransportModal = function(id) {
