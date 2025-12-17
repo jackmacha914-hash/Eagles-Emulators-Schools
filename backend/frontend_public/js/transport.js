@@ -32,6 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
         const modal = document.getElementById(id);
         if(modal) modal.style.display = 'flex';
+          // Populate dropdowns when the modal opens
+    if(id === 'routeModal') {
+        loadBusesDropdown('route-bus'); // Populate the bus dropdown for routes
+    }
+
+    if(id === 'driverModal') {
+        loadBusesDropdown('driver-bus'); // Populate the bus dropdown for drivers
+    }
+
+    if(id === 'studentTransportModal') {
+        loadBusesDropdown('student-bus'); // Populate bus dropdown for student assignments
+        loadRoutesDropdown('student-route'); // Populate route dropdown for student assignments
+    }
     };
 
     window.closeTransportModal = function(id) {
