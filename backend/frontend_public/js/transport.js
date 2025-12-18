@@ -252,7 +252,8 @@ window.addEventListener('click', e => {
     }
 }
 
-
+// ✅ Make globally accessible
+window.loadTransportPayments = loadTransportPayments;
 
     window.deleteTransportPayment = async function(id) {
     if (!confirm('Delete this payment?')) return;
