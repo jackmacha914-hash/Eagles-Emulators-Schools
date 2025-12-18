@@ -230,13 +230,12 @@ async function loadTransportPayments(forceReload = false) {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
-    // 🔒 Force blur so input values commit
+    // Blur filter inputs
     ["filter-term", "filter-year", "filter-student", "filter-route"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.blur();
     });
 
-    // Get all filter values
     const termFilter = document.getElementById("filter-term")?.value.trim();
     const yearFilter = document.getElementById("filter-year")?.value.trim();
     const studentFilter = document.getElementById("filter-student")?.value;
@@ -244,15 +243,19 @@ async function loadTransportPayments(forceReload = false) {
     const sortOrder = document.getElementById("filter-sort")?.value || "latest";
 
     try {
-        // Fetch only once unless forced
+        // Load payments
         if (forceReload || transportPaymentsCache.length === 0) {
             const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
             transportPaymentsCache = await res.json();
         }
 
+        // Load fees for balance calculation
+        const feesRes = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/fees');
+        const feesCache = await feesRes.json(); // [{ routeId, amount }]
+
         let payments = [...transportPaymentsCache];
 
-        // ✅ Frontend filtering
+        // Apply filters
         payments = payments.filter(p => {
             const termMatch = termFilter ? p.term === termFilter : true;
             const yearMatch = yearFilter ? String(p.year) === yearFilter : true;
@@ -261,7 +264,7 @@ async function loadTransportPayments(forceReload = false) {
             return termMatch && yearMatch && studentMatch && routeMatch;
         });
 
-        // Sort latest/oldest
+        // Sort
         payments.sort((a, b) => {
             const da = new Date(a.createdAt || a.date);
             const db = new Date(b.createdAt || b.date);
@@ -277,23 +280,42 @@ async function loadTransportPayments(forceReload = false) {
         const routeMap = {};
         [...routeSelect.options].forEach(o => o.value && (routeMap[o.value] = o.text));
 
-        tbody.innerHTML = payments.map(p => `
-            <tr>
-                <td>${studentMap[p.studentId] || '-'}</td>
-                <td>${routeMap[p.routeId] || '-'}</td>
-                <td>${p.amount}</td>
-                <td>${p.method || p.paymentMethod || '-'}</td>
-                <td>${p.term || '-'} / ${p.year || '-'}</td>
-                <td>${new Date(p.createdAt).toLocaleDateString()}</td>
-          <td>${p.balance != null ? p.balance : '-'}</td>
-          <td>${p.status || '-'}</td>
-            </tr>
-        `).join('');
+        // Group payments by student + route + term + year
+        const grouped = {};
+        payments.forEach(p => {
+            const key = `${p.studentId}-${p.routeId}-${p.term}-${p.year}`;
+            if (!grouped[key]) grouped[key] = 0;
+            grouped[key] += Number(p.amount);
+        });
+
+        tbody.innerHTML = Object.keys(grouped).map(key => {
+            const [studentId, routeId, term, year] = key.split("-");
+            const paid = grouped[key];
+            const feeObj = feesCache.find(f => f.routeId === routeId);
+            const totalFee = feeObj ? Number(feeObj.amount) : 0;
+            const balance = totalFee - paid;
+            let status = "Unpaid";
+            if (paid >= totalFee && totalFee > 0) status = "Paid";
+            else if (paid > 0) status = "Partial";
+
+            return `
+                <tr>
+                    <td>${studentMap[studentId] || '-'}</td>
+                    <td>${routeMap[routeId] || '-'}</td>
+                    <td>${paid}</td>
+                    <td>${totalFee}</td>
+                    <td>${balance}</td>
+                    <td>${status}</td>
+                    <td>${term} / ${year}</td>
+                </tr>
+            `;
+        }).join('');
 
     } catch (err) {
         console.error("Error loading payments:", err);
     }
 }
+
 
 // Make globally accessible
 window.loadTransportPayments = loadTransportPayments;
