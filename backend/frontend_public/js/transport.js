@@ -86,12 +86,17 @@ window.openTransportModal = function(id) {
         loadRoutesDropdown('student-route');
         loadStudentsDropdown('student-id');
     }
-    if (id === 'feesModal') loadRoutesDropdown('fees-route');
-    if (id === 'paymentsModal') {
+  if (id === 'paymentsModal') {
     loadStudentsDropdown('payment-student');
     loadRoutesDropdown('payment-route');
-    loadTransportPayments();
+
+    // Populate filter dropdowns
+    loadStudentsDropdown('filter-student');
+    loadRoutesDropdown('filter-route');
+
+    loadTransportPayments(true);
 }
+
 };
 
 // Close modal function
@@ -221,33 +226,46 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
- async function loadTransportPayments(forceReload = false) {
+async function loadTransportPayments(forceReload = false) {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
-    // 🔒 Force blur so values commit
-    document.getElementById("filter-term").blur();
-    document.getElementById("filter-year").blur();
+    // 🔒 Force blur so input values commit
+    ["filter-term", "filter-year", "filter-student", "filter-route"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.blur();
+    });
 
-    const termFilter = document.getElementById("filter-term").value.trim();
-    const yearFilter = document.getElementById("filter-year").value.trim();
+    // Get all filter values
+    const termFilter = document.getElementById("filter-term")?.value.trim();
+    const yearFilter = document.getElementById("filter-year")?.value.trim();
+    const studentFilter = document.getElementById("filter-student")?.value;
+    const routeFilter = document.getElementById("filter-route")?.value;
+    const sortOrder = document.getElementById("filter-sort")?.value || "latest";
 
     try {
-        // ✅ Fetch only once unless forced
+        // Fetch only once unless forced
         if (forceReload || transportPaymentsCache.length === 0) {
-            const res = await fetch(
-              'https://eagles-emulators-schools.onrender.com/api/transport/payments'
-            );
+            const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
             transportPaymentsCache = await res.json();
         }
 
         let payments = [...transportPaymentsCache];
 
-        // ✅ Frontend filter
+        // ✅ Frontend filtering
         payments = payments.filter(p => {
             const termMatch = termFilter ? p.term === termFilter : true;
             const yearMatch = yearFilter ? String(p.year) === yearFilter : true;
-            return termMatch && yearMatch;
+            const studentMatch = studentFilter ? p.studentId === studentFilter : true;
+            const routeMatch = routeFilter ? p.routeId === routeFilter : true;
+            return termMatch && yearMatch && studentMatch && routeMatch;
+        });
+
+        // Sort latest/oldest
+        payments.sort((a, b) => {
+            const da = new Date(a.createdAt || a.date);
+            const db = new Date(b.createdAt || b.date);
+            return sortOrder === "oldest" ? da - db : db - da;
         });
 
         const studentSelect = document.getElementById("payment-student");
@@ -275,7 +293,9 @@ window.addEventListener('click', e => {
     }
 }
 
+// Make globally accessible
 window.loadTransportPayments = loadTransportPayments;
+
 
     window.deleteTransportPayment = async function(id) {
     if (!confirm('Delete this payment?')) return;
@@ -443,24 +463,30 @@ window.saveTransportPayment = async function () {
         alert('Failed to save payment');
     }
 };
-
-    // ---------------------------
+// ---------------------------
 // LIVE PAYMENT FILTERING
 // ---------------------------
 const filterTerm = document.getElementById("filter-term");
 const filterYear = document.getElementById("filter-year");
+const filterStudent = document.getElementById("filter-student");
+const filterRoute = document.getElementById("filter-route");
+const filterSort = document.getElementById("filter-sort");
 
-if (filterTerm) {
-    filterTerm.addEventListener("change", () => {
-        loadTransportPayments(false);
-    });
-}
+const filterElements = [filterTerm, filterYear, filterStudent, filterRoute, filterSort];
 
-if (filterYear) {
-    filterYear.addEventListener("input", () => {
-        loadTransportPayments(false);
-    });
-}
+filterElements.forEach(el => {
+    if (el) {
+        el.addEventListener("change", () => {
+            loadTransportPayments(false);
+        });
+        // For number input (year), also listen to input events
+        if (el.type === "number") {
+            el.addEventListener("input", () => {
+                loadTransportPayments(false);
+            });
+        }
+    }
+});
 
 
     // ---------------------------
@@ -473,4 +499,51 @@ if (filterYear) {
     loadTransportPayments(true);
 });
 console.log("transport.js loaded");
+window.exportPaymentsCSV = function () {
+    if (!transportPaymentsCache.length) return alert("No payments");
+
+    let csv = "Student,Route,Amount,Method,Term,Year,Date\n";
+
+    transportPaymentsCache.forEach(p => {
+        csv += `"${p.studentId}","${p.routeId}",${p.amount},"${p.method}",${p.term},${p.year},${new Date(p.createdAt).toLocaleDateString()}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "transport_payments.csv";
+    a.click();
+};
+
+window.exportPaymentsExcel = function () {
+    if (!transportPaymentsCache.length) return alert("No payments");
+
+    let table = `<table>
+      <tr>
+        <th>Student</th><th>Route</th><th>Amount</th>
+        <th>Method</th><th>Term</th><th>Year</th><th>Date</th>
+      </tr>`;
+
+    transportPaymentsCache.forEach(p => {
+        table += `
+        <tr>
+          <td>${p.studentId}</td>
+          <td>${p.routeId}</td>
+          <td>${p.amount}</td>
+          <td>${p.method}</td>
+          <td>${p.term}</td>
+          <td>${p.year}</td>
+          <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+        </tr>`;
+    });
+
+    table += "</table>";
+
+    const blob = new Blob([table], { type: "application/vnd.ms-excel" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "transport_payments.xls";
+    a.click();
+};
+
 
