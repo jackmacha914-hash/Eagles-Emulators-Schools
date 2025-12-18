@@ -284,6 +284,8 @@ async function loadTransportPayments(forceReload = false) {
                 <td>${p.amount}</td>
                 <td>${p.method || p.paymentMethod || '-'}</td>
                 <td>${p.term || '-'} / ${p.year || '-'}</td>
+                <td>${p.balance}</td>
+                <td>${p.status}</td>
                 <td>${new Date(p.createdAt || p.date).toLocaleDateString()}</td>
             </tr>
         `).join('');
