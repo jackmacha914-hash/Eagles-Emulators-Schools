@@ -228,14 +228,14 @@ window.addEventListener('click', e => {
     const term = document.getElementById("filter-term").value;
     const year = document.getElementById("filter-year").value;
 
-    // Build query string
-    const query = new URLSearchParams();
-    if (term) query.append("term", term);
-    if (year) query.append("year", year);
-
-    try {
+       try {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
         const payments = await res.json();
+
+            // Build query string
+        const query = new URLSearchParams();
+        if (term) query.append("term", term);
+        if (year) query.append("year", year);
 
         const studentSelect = document.getElementById("payment-student");
         const routeSelect = document.getElementById("payment-route");
