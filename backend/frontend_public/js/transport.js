@@ -237,9 +237,8 @@ window.addEventListener('click', e => {
             <tr>
                 <td>${p.studentId?.name || '-'}</td>
                 <td>${p.routeId?.name || '-'}</td>
-                <td>${p.amountPaid}</td>
+                <td>${p.amount}</td>
                 <td>${p.method}</td>
-                <td>${p.balance}</td>
                 <td>${p.term} / ${p.year}</td>
                 <td>${new Date(p.createdAt).toLocaleDateString()}</td>
             </tr>
@@ -385,7 +384,7 @@ window.saveFee = async function () {
 window.saveTransportPayment = async function () {
     const studentId = document.getElementById('payment-student').value;
     const routeId = document.getElementById('payment-route').value;
-    const amountPaid = document.getElementById('payment-amount').value;
+    const amount = document.getElementById('payment-amount').value;
     const term = document.getElementById('payment-term').value;
     const year = document.getElementById('payment-year').value;
     const method = document.getElementById('payment-method').value;
@@ -402,7 +401,7 @@ window.saveTransportPayment = async function () {
             body: JSON.stringify({
                 studentId,
                 routeId,
-                amountPaid,
+                amount,
                 term,
                 year,
                 method
