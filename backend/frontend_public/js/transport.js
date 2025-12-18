@@ -284,9 +284,9 @@ async function loadTransportPayments(forceReload = false) {
                 <td>${p.amount}</td>
                 <td>${p.method || p.paymentMethod || '-'}</td>
                 <td>${p.term || '-'} / ${p.year || '-'}</td>
-                <td>${p.balance}</td>
-                <td>${p.status}</td>
-                <td>${new Date(p.createdAt || p.date).toLocaleDateString()}</td>
+                <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+          <td>${p.balance != null ? p.balance : '-'}</td>
+          <td>${p.status || '-'}</td>
             </tr>
         `).join('');
 
@@ -524,10 +524,10 @@ console.log("transport.js loaded");
 window.exportPaymentsCSV = function () {
     if (!transportPaymentsCache.length) return alert("No payments");
 
-    let csv = "Student,Route,Amount,Method,Term,Year,Date\n";
+    let csv = "Student,Route,Amount,Method,Term,Year,Date,Balance,Status\n";
 
     transportPaymentsCache.forEach(p => {
-        csv += `"${p.studentId}","${p.routeId}",${p.amount},"${p.method}",${p.term},${p.year},${new Date(p.createdAt).toLocaleDateString()}\n`;
+        csv += `"${p.studentId}","${p.routeId}",${p.amount},"${p.method}",${p.term},${p.year},${new Date(p.createdAt).toLocaleDateString()},${p.balance},${p.status}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -543,7 +543,8 @@ window.exportPaymentsExcel = function () {
     let table = `<table>
       <tr>
         <th>Student</th><th>Route</th><th>Amount</th>
-        <th>Method</th><th>Term</th><th>Year</th><th>Date</th>
+        <th>Method</th><th>Term</th><th>Year</th>
+        <th>Date</th><th>Balance</th><th>Status</th>
       </tr>`;
 
     transportPaymentsCache.forEach(p => {
@@ -556,6 +557,8 @@ window.exportPaymentsExcel = function () {
           <td>${p.term}</td>
           <td>${p.year}</td>
           <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+          <td>${p.balance != null ? p.balance : '-'}</td>
+          <td>${p.status || '-'}</td>
         </tr>`;
     });
 
@@ -567,5 +570,6 @@ window.exportPaymentsExcel = function () {
     a.download = "transport_payments.xls";
     a.click();
 };
+
 
 
