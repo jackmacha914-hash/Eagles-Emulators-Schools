@@ -32,6 +32,7 @@ const marksRoutes = require('./routes/marksRoutes');
 const userRoutes = require('./routes/userRoutes');
 const feesRoutes = require('./routes/fees');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const transportPaymentsRoutes = require("./routes/transportPayments");
 
 
 // ------------------- MIDDLEWARE -------------------
