@@ -224,15 +224,16 @@ window.addEventListener('click', e => {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
-    // Get filter values
+    // ✅ FIX: force committed values
     const termFilter = document.getElementById("filter-term").value.trim();
-    const yearFilter = document.getElementById("filter-year").value.trim();
+    const yearInput = document.getElementById("filter-year");
+    const yearFilter = yearInput.valueAsNumber ? String(yearInput.valueAsNumber) : "";
 
     try {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
         let payments = await res.json();
 
-        // ✅ FRONTEND FILTER (robust)
+        // FRONTEND FILTER
         payments = payments.filter(p => {
             const paymentTerm = (p.term || '').trim();
             const paymentYear = String(p.year || '').trim();
@@ -272,7 +273,6 @@ window.addEventListener('click', e => {
     }
 }
 
-// ✅ Make globally accessible
 window.loadTransportPayments = loadTransportPayments;
 
     window.deleteTransportPayment = async function(id) {
