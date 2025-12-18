@@ -473,9 +473,9 @@ window.saveTransportPayment = async function () {
             body: JSON.stringify({
                 studentId,
                 routeId,
-                amount,
+                amount: Number(amount),
                 term,
-                year,
+                year: Number(year),
                 method
             })
         });
