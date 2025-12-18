@@ -488,6 +488,26 @@ filterElements.forEach(el => {
     }
 });
 
+    //CLEAR FILTERS
+const clearFiltersBtn = document.getElementById("clear-filters");
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", () => {
+        const filterTerm = document.getElementById("filter-term");
+        const filterYear = document.getElementById("filter-year");
+        const filterStudent = document.getElementById("filter-student");
+        const filterRoute = document.getElementById("filter-route");
+        const filterSort = document.getElementById("filter-sort");
+
+        if (filterTerm) filterTerm.value = "";
+        if (filterYear) filterYear.value = "";
+        if (filterStudent) filterStudent.value = "";
+        if (filterRoute) filterRoute.value = "";
+        if (filterSort) filterSort.value = "latest";
+
+        loadTransportPayments(false);
+    });
+}
+
 
     // ---------------------------
     // INITIAL LOAD
