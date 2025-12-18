@@ -26,10 +26,8 @@ router.get("/", async (req, res) => {
     if (year) filter.year = year;
 
     const payments = await TransportPayment
-      .find(filter)
-      .populate("studentId", "name")
-      .populate("routeId", "name")
-      .sort({ createdAt: -1 });
+  .find(filter)
+  .sort({ createdAt: -1 });
 
     res.json(payments);
   } catch (err) {
