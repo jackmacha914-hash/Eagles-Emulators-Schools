@@ -2147,15 +2147,12 @@ window.fetch = async (input, init = {}) => {
       </select>
       <button type="button" class="btn full" onclick="saveTransportPayment()">Record Payment</button>
     </form>
-      <div class="payment-filters">
-      <select id="filter-term">
-  <option value="">All Terms</option>
-  <option>Term 1</option>
-  <option>Term 2</option>
-  <option>Term 3</option>
-</select>
-<input type="number" id="filter-year" placeholder="All Years">
-<button type="button" id="filter-btn">Filter</button>
+      <input type="number" id="filter-year" placeholder="All Years">
+    <select id="filter-sort">
+        <option value="latest">Latest</option>
+        <option value="oldest">Oldest</option>
+    </select>
+    <button type="button" id="clear-filters" class="btn">Clear Filters</button>
           <select id="filter-student">
   <option value="">All Students</option>
 </select>
