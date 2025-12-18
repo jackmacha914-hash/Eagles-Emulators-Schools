@@ -1,4 +1,5 @@
 // transport.js
+let transportPaymentsCache = [];
 
 // 1️⃣ Add this function at the top of the file or anywhere outside DOMContentLoaded
 async function loadBusesDropdown(selectId) {
@@ -220,27 +221,32 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
- async function loadTransportPayments() {
+ async function loadTransportPayments(forceReload = false) {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
-    // ✅ FIX: force committed values
+    // 🔒 Force blur so values commit
+    document.getElementById("filter-term").blur();
+    document.getElementById("filter-year").blur();
+
     const termFilter = document.getElementById("filter-term").value.trim();
-    const yearInput = document.getElementById("filter-year");
-    const yearFilter = yearInput.valueAsNumber ? String(yearInput.valueAsNumber) : "";
+    const yearFilter = document.getElementById("filter-year").value.trim();
 
     try {
-        const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
-        let payments = await res.json();
+        // ✅ Fetch only once unless forced
+        if (forceReload || transportPaymentsCache.length === 0) {
+            const res = await fetch(
+              'https://eagles-emulators-schools.onrender.com/api/transport/payments'
+            );
+            transportPaymentsCache = await res.json();
+        }
 
-        // FRONTEND FILTER
+        let payments = [...transportPaymentsCache];
+
+        // ✅ Frontend filter
         payments = payments.filter(p => {
-            const paymentTerm = (p.term || '').trim();
-            const paymentYear = String(p.year || '').trim();
-
-            const termMatch = termFilter ? paymentTerm === termFilter : true;
-            const yearMatch = yearFilter ? paymentYear === yearFilter : true;
-
+            const termMatch = termFilter ? p.term === termFilter : true;
+            const yearMatch = yearFilter ? String(p.year) === yearFilter : true;
             return termMatch && yearMatch;
         });
 
@@ -248,14 +254,10 @@ window.addEventListener('click', e => {
         const routeSelect = document.getElementById("payment-route");
 
         const studentMap = {};
-        [...studentSelect.options].forEach(opt => {
-            if (opt.value) studentMap[opt.value] = opt.text;
-        });
+        [...studentSelect.options].forEach(o => o.value && (studentMap[o.value] = o.text));
 
         const routeMap = {};
-        [...routeSelect.options].forEach(opt => {
-            if (opt.value) routeMap[opt.value] = opt.text;
-        });
+        [...routeSelect.options].forEach(o => o.value && (routeMap[o.value] = o.text));
 
         tbody.innerHTML = payments.map(p => `
             <tr>
@@ -269,7 +271,7 @@ window.addEventListener('click', e => {
         `).join('');
 
     } catch (err) {
-        console.error('Error loading payments:', err);
+        console.error("Error loading payments:", err);
     }
 }
 
@@ -449,7 +451,7 @@ window.saveTransportPayment = async function () {
     loadRoutes();
     loadDrivers();
     loadStudentAssignments();
-    loadTransportPayments();
+    loadTransportPayments(true);
 });
 console.log("transport.js loaded");
 
