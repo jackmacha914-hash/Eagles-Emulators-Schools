@@ -394,7 +394,7 @@ window.saveTransportPayment = async function () {
     const year = document.getElementById('payment-year').value;
     const method = document.getElementById('payment-method').value;
 
-    if (!studentId || !routeId || !amountPaid || !term || !year || !method) {
+    if (!studentId || !routeId || !amount || !term || !year || !method) {
         alert('Please fill all payment fields');
         return;
     }
