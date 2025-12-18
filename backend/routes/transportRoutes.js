@@ -128,5 +128,53 @@ router.delete('/assignments/:id', async (req, res) => {
     await StudentTransport.findByIdAndDelete(req.params.id);
     res.json({ message: 'Assignment deleted' });
 });
+// --------------------
+// TRANSPORT PAYMENTS (Schema-less)
+// --------------------
+const transportPaymentsCollection = mongoose.connection.collection('transportpayments');
+
+// CREATE payment
+router.post('/payments', async (req, res) => {
+  try {
+    const data = { ...req.body, createdAt: new Date() }; // add createdAt for sorting
+    const result = await transportPaymentsCollection.insertOne(data);
+    res.status(201).json(result.ops[0] || data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET payments with optional filters
+router.get('/payments', async (req, res) => {
+  try {
+    const { term, year, studentId, routeId } = req.query;
+    const filter = {};
+    if (term) filter.term = term;
+    if (year) filter.year = parseInt(year);
+    if (studentId) filter.studentId = studentId;
+    if (routeId) filter.routeId = routeId;
+
+    const payments = await transportPaymentsCollection
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE payment
+router.delete('/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await transportPaymentsCollection.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 module.exports = router;
