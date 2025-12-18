@@ -1,28 +1,32 @@
-// routes/transportPayments.js
-// POST: Create a new payment
 const express = require('express');
 const router = express.Router();
-const TransportPayment = require('../models/TransportPayment');
-const TransportFee = require('../models/TransportFee'); // your fee model
 
+const TransportPayment = require('../models/TransportPayment');
+const TransportFee = require('../models/TransportFee');
+
+// CREATE PAYMENT
 router.post('/', async (req, res) => {
     try {
-        const { amountPaid, term, year, method } = req.body;
-        const studentId = new mongoose.Types.ObjectId(req.body.studentId);
-        const routeId = new mongoose.Types.ObjectId(req.body.routeId);
+        const {
+            studentId,
+            routeId,
+            amountPaid,
+            term,
+            year,
+            method
+        } = req.body;
 
         if (!studentId || !routeId || !amountPaid || !term || !year || !method) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // 🔹 Get fee for this route
         const feeRecord = await TransportFee.findOne({ routeId });
         if (!feeRecord) {
             return res.status(400).json({ error: 'Transport fee not set for this route' });
         }
 
         const fee = feeRecord.amount;
-        const balance = Math.max(fee - amountPaid, 0);
+        const balance = fee - Number(amountPaid);
 
         const payment = new TransportPayment({
             studentId,
@@ -40,18 +44,21 @@ router.post('/', async (req, res) => {
 
     } catch (err) {
         console.error('Payment save error:', err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: err.message });
     }
 });
 
+// GET PAYMENTS
 router.get('/', async (req, res) => {
     try {
-        const payments = await TransportPayment.find();
+        const payments = await TransportPayment.find()
+            .populate('studentId', 'name')
+            .populate('routeId', 'name');
+
         res.json(payments);
-    } 
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+    } catch (err) {
+        console.error('Payment fetch error:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
