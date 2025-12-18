@@ -224,6 +224,15 @@ window.addEventListener('click', e => {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
+      // Get filter values
+    const term = document.getElementById("filter-term").value;
+    const year = document.getElementById("filter-year").value;
+
+    // Build query string
+    const query = new URLSearchParams();
+    if (term) query.append("term", term);
+    if (year) query.append("year", year);
+
     try {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
         const payments = await res.json();
