@@ -445,6 +445,25 @@ window.saveTransportPayment = async function () {
 };
 
     // ---------------------------
+// LIVE PAYMENT FILTERING
+// ---------------------------
+const filterTerm = document.getElementById("filter-term");
+const filterYear = document.getElementById("filter-year");
+
+if (filterTerm) {
+    filterTerm.addEventListener("change", () => {
+        loadTransportPayments(false);
+    });
+}
+
+if (filterYear) {
+    filterYear.addEventListener("input", () => {
+        loadTransportPayments(false);
+    });
+}
+
+
+    // ---------------------------
     // INITIAL LOAD
     // ---------------------------
     loadBuses();
