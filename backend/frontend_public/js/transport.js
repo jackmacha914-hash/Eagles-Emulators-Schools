@@ -224,38 +224,49 @@ window.addEventListener('click', e => {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
-      // Get filter values
-    const term = document.getElementById("filter-term").value;
-    const year = document.getElementById("filter-year").value;
+    // Get filter values
+    const termFilter = document.getElementById("filter-term").value.trim();
+    const yearFilter = document.getElementById("filter-year").value.trim();
 
-       try {
+    try {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
-        const payments = await res.json();
+        let payments = await res.json();
 
-            // Build query string
-        const query = new URLSearchParams();
-        if (term) query.append("term", term);
-        if (year) query.append("year", year);
+        // ✅ FRONTEND FILTER (robust)
+        payments = payments.filter(p => {
+            const paymentTerm = (p.term || '').trim();
+            const paymentYear = String(p.year || '').trim();
+
+            const termMatch = termFilter ? paymentTerm === termFilter : true;
+            const yearMatch = yearFilter ? paymentYear === yearFilter : true;
+
+            return termMatch && yearMatch;
+        });
 
         const studentSelect = document.getElementById("payment-student");
         const routeSelect = document.getElementById("payment-route");
 
         const studentMap = {};
-        [...studentSelect.options].forEach(opt => { if(opt.value) studentMap[opt.value] = opt.text; });
+        [...studentSelect.options].forEach(opt => {
+            if (opt.value) studentMap[opt.value] = opt.text;
+        });
 
         const routeMap = {};
-        [...routeSelect.options].forEach(opt => { if(opt.value) routeMap[opt.value] = opt.text; });
+        [...routeSelect.options].forEach(opt => {
+            if (opt.value) routeMap[opt.value] = opt.text;
+        });
 
         tbody.innerHTML = payments.map(p => `
             <tr>
                 <td>${studentMap[p.studentId] || '-'}</td>
                 <td>${routeMap[p.routeId] || '-'}</td>
                 <td>${p.amount}</td>
-                <td>${p.method}</td>
-                <td>${p.term} / ${p.year}</td>
-                <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+                <td>${p.method || p.paymentMethod || '-'}</td>
+                <td>${p.term || '-'} / ${p.year || '-'}</td>
+                <td>${new Date(p.createdAt || p.date).toLocaleDateString()}</td>
             </tr>
         `).join('');
+
     } catch (err) {
         console.error('Error loading payments:', err);
     }
