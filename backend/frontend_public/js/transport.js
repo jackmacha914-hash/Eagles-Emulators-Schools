@@ -440,3 +440,14 @@ window.saveTransportPayment = async function () {
     loadStudentAssignments();
     loadTransportPayments();
 });
+console.log("transport.js loaded");
+
+window.loadTransportPayments = function () {
+    console.log("Filter button clicked ✅");
+
+    const term = document.getElementById("filter-term")?.value;
+    const year = document.getElementById("filter-year")?.value;
+
+    console.log("Filters:", { term, year });
+};
+
