@@ -220,7 +220,7 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
-   async function loadTransportPayments() {
+ async function loadTransportPayments() {
     const tbody = document.querySelector('#payment-table tbody');
     if (!tbody) return;
 
@@ -228,15 +228,19 @@ window.addEventListener('click', e => {
         const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
         const payments = await res.json();
 
-        if (!Array.isArray(payments)) {
-            console.error('Payments is not an array:', payments);
-            return;
-        }
+        const studentSelect = document.getElementById("payment-student");
+        const routeSelect = document.getElementById("payment-route");
+
+        const studentMap = {};
+        [...studentSelect.options].forEach(opt => { if(opt.value) studentMap[opt.value] = opt.text; });
+
+        const routeMap = {};
+        [...routeSelect.options].forEach(opt => { if(opt.value) routeMap[opt.value] = opt.text; });
 
         tbody.innerHTML = payments.map(p => `
             <tr>
-                <td>${p.studentId?.name || '-'}</td>
-                <td>${p.routeId?.name || '-'}</td>
+                <td>${studentMap[p.studentId] || '-'}</td>
+                <td>${routeMap[p.routeId] || '-'}</td>
                 <td>${p.amount}</td>
                 <td>${p.method}</td>
                 <td>${p.term} / ${p.year}</td>
@@ -247,6 +251,7 @@ window.addEventListener('click', e => {
         console.error('Error loading payments:', err);
     }
 }
+
 
 
     window.deleteTransportPayment = async function(id) {
