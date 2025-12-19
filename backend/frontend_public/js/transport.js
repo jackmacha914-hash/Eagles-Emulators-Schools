@@ -501,6 +501,191 @@ async function loadTransportPayments(forceReload = false) {
     });
 
     // Render table
+     // ---------------------------
+// TRANSPORT FEES
+// ---------------------------
+window.saveFee = async function () {
+    const routeId = document.getElementById('fees-route').value;
+    const amount = document.getElementById('fees-amount').value;
+
+    if (!routeId || !amount) {
+        alert('Please select a route and enter fee amount');
+        return;
+    }
+
+    try {
+        await fetch(`${API_BASE}/fees`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ routeId, amount })
+        });
+
+        closeTransportModal('feesModal');
+        alert('Transport fee saved successfully');
+    } catch (err) {
+        console.error('Error saving fee:', err);
+        alert('Failed to save fee');
+    }
+};
+    // ---------------------------
+// TRANSPORT PAYMENTS
+// --------------------------
+
+// ---------------------------
+// UTILITY FUNCTIONS
+// ---------------------------
+async function loadDropdown(selectId, apiEndpoint, labelField) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const res = await fetch(apiEndpoint);
+        const items = await res.json();
+
+        select.innerHTML = `<option value="">Select</option>`;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item._id;
+            option.text = item[labelField];
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error(`Error loading ${selectId}:`, err);
+    }
+}
+
+// ---------------------------
+// MODAL HANDLING
+// ---------------------------
+window.openTransportModal = function(id) {
+    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    // Populate dropdowns
+    if (id === 'paymentsModal') {
+        loadDropdown('payment-student', '/api/students', 'name');
+        loadDropdown('payment-route', '/api/transport/routes', 'name');
+
+        // Filter dropdowns
+        loadDropdown('filter-student', '/api/students', 'name');
+        loadDropdown('filter-route', '/api/transport/routes', 'name');
+
+        loadTransportPayments(true);
+    }
+};
+
+window.closeTransportModal = function(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = 'none';
+};
+
+// Close modal on click outside
+window.addEventListener('click', e => {
+    if (e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
+});
+
+// ---------------------------
+// TRANSPORT PAYMENTS LOGIC
+// ---------------------------
+window.saveTransportPayment = async function() {
+    const studentId = document.getElementById('payment-student').value;
+    const routeId = document.getElementById('payment-route').value;
+    const amount = document.getElementById('payment-amount').value;
+    const term = document.getElementById('payment-term').value;
+    const year = document.getElementById('payment-year').value;
+    const method = document.getElementById('payment-method').value;
+
+    if (!studentId || !routeId || !amount || !term || !year || !method) {
+        alert('Please fill all payment fields');
+        return;
+    }
+
+    try {
+        const payload = {
+            studentId,
+            routeId,
+            amount: Number(amount),
+            term,
+            year: Number(year),
+            method
+        };
+
+        console.log("Payload sent:", payload);
+
+        await fetch('/api/transport/payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        alert('Payment saved successfully');
+        loadTransportPayments(true);
+    } catch (err) {
+        console.error('Backend error:', err);
+        alert('Failed to save payment');
+    }
+};
+
+window.deleteTransportPayment = async function(id) {
+    if (!confirm('Delete this payment?')) return;
+    try {
+        await fetch(`/api/transport/payments/${id}`, { method: 'DELETE' });
+        loadTransportPayments(true);
+    } catch (err) {
+        console.error('Error deleting payment:', err);
+    }
+};
+
+// ---------------------------
+// LOAD TRANSPORT PAYMENTS WITH GROUPING BY YEAR → TERM
+// ---------------------------
+async function loadTransportPayments(forceReload = false) {
+    if (forceReload || transportPaymentsCache.length === 0) {
+        const res = await fetch('/api/transport/payments');
+        transportPaymentsCache = await res.json();
+    }
+
+    const tbody = document.querySelector('#payment-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // Filters
+    const termFilter = document.getElementById('filter-term')?.value;
+    const yearFilter = document.getElementById('filter-year')?.value;
+    const studentFilter = document.getElementById('filter-student')?.value;
+    const routeFilter = document.getElementById('filter-route')?.value;
+
+    // Filter payments
+    let payments = transportPaymentsCache.filter(p =>
+        (!termFilter || p.term === termFilter) &&
+        (!yearFilter || String(p.year) === yearFilter) &&
+        (!studentFilter || p.studentId === studentFilter) &&
+        (!routeFilter || p.routeId === routeFilter)
+    );
+
+    // Maps for dropdown names
+    const studentMap = {};
+    document.getElementById('payment-student')?.querySelectorAll('option').forEach(o => { if (o.value) studentMap[o.value] = o.text; });
+    const routeMap = {};
+    document.getElementById('payment-route')?.querySelectorAll('option').forEach(o => { if (o.value) routeMap[o.value] = o.text; });
+
+    // Group by year → term → student
+    const grouped = {};
+    payments.forEach(p => {
+        const year = p.year;
+        const term = p.term;
+        const student = p.studentId;
+
+        if (!grouped[year]) grouped[year] = {};
+        if (!grouped[year][term]) grouped[year][term] = {};
+        if (!grouped[year][term][student]) grouped[year][term][student] = [];
+
+        grouped[year][term][student].push(p);
+    });
+
+    // Render table
     Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
         const yearRow = document.createElement('tr');
         yearRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#eee;">Year: ${year}</td>`;
@@ -541,6 +726,27 @@ async function loadTransportPayments(forceReload = false) {
             });
         });
     });
+}
+
+// Make globally accessible
+window.loadTransportPayments = loadTransportPayments;
+
+// ---------------------------
+// FILTERS
+// ---------------------------
+['filter-term','filter-year','filter-student','filter-route'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', () => loadTransportPayments(false));
+});
+
+// Clear filters button
+document.getElementById('clear-filters')?.addEventListener('click', () => {
+    ['filter-term','filter-year','filter-student','filter-route'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = '';
+    });
+    loadTransportPayments(false);
+});
 }
 
 // Make globally accessible
