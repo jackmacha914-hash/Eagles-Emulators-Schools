@@ -15,22 +15,59 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    if (
+      !mongoose.Types.ObjectId.isValid(studentId) ||
+      !mongoose.Types.ObjectId.isValid(routeId)
+    ) {
+      return res.status(400).json({ error: "Invalid student or route ID" });
+    }
+
+    const route = await Route.findById(routeId);
+    const routeFee = route?.fee || 0;
+
+    const previousPayments = await TransportPayment.aggregate([
+      {
+        $match: {
+          studentId: new mongoose.Types.ObjectId(studentId),
+          routeId: new mongoose.Types.ObjectId(routeId),
+          term,
+          year
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalPaid: { $sum: "$amount" }
+        }
+      }
+    ]);
+
+    const totalPaidBefore = previousPayments.length > 0
+      ? previousPayments[0].totalPaid
+      : 0;
+
+    const balance = routeFee - (totalPaidBefore + amount);
+    const status =
+      balance <= 0 ? "Paid" :
+      totalPaidBefore > 0 ? "Partial" : "Unpaid";
+
     const payment = await TransportPayment.create({
       studentId,
       routeId,
       amount,
       term,
       year,
-      method
+      method,
+      balance,
+      status
     });
 
     res.status(201).json(payment);
   } catch (err) {
-    console.error(err);
+    console.error("PAYMENT ERROR:", err);
     res.status(400).json({ error: err.message });
   }
 });
-
 
 /**
  * GET payments (with filters)
