@@ -319,29 +319,7 @@ window.addEventListener('click', e => {
     // ---------------------------
 // TRANSPORT FEES
 // ---------------------------
-window.saveFee = async function () {
-    const routeId = document.getElementById('fees-route').value;
-    const amount = document.getElementById('fees-amount').value;
 
-    if (!routeId || !amount) {
-        alert('Please select a route and enter fee amount');
-        return;
-    }
-
-    try {
-        await fetch(`${API_BASE}/fees`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ routeId, amount })
-        });
-
-        closeTransportModal('feesModal');
-        alert('Transport fee saved successfully');
-    } catch (err) {
-        console.error('Error saving fee:', err);
-        alert('Failed to save fee');
-    }
-};
     // ---------------------------
 // TRANSPORT PAYMENTS
 // --------------------------
@@ -372,24 +350,7 @@ async function loadDropdown(selectId, apiEndpoint, labelField) {
 // ---------------------------
 // MODAL HANDLING
 // ---------------------------
-window.openTransportModal = function(id) {
-    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
-    const modal = document.getElementById(id);
-    if (!modal) return;
-    modal.style.display = 'flex';
 
-    // Populate dropdowns
-    if (id === 'paymentsModal') {
-        loadDropdown('payment-student', '/api/students', 'name');
-        loadDropdown('payment-route', '/api/transport/routes', 'name');
-
-        // Filter dropdowns
-        loadDropdown('filter-student', '/api/students', 'name');
-        loadDropdown('filter-route', '/api/transport/routes', 'name');
-
-        loadTransportPayments(true);
-    }
-};
 
 window.closeTransportModal = function(id) {
     const modal = document.getElementById(id);
@@ -576,24 +537,7 @@ async function filterStudentsByClass(className) {
 // ---------------------------
 // MODAL HANDLING
 // ---------------------------
-window.openTransportModal = function(id) {
-    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
-    const modal = document.getElementById(id);
-    if (!modal) return;
-    modal.style.display = 'flex';
 
-    // Populate dropdowns
-  if (id === 'paymentsModal') {
-    loadDropdown('payment-student', '/api/students', 'name');
-    loadDropdown('payment-route', '/api/transport/routes', 'name');
-
-        // Filter dropdowns
-        loadDropdown('filter-student', '/api/students', 'name');
-        loadDropdown('filter-route', '/api/transport/routes', 'name');
-
-        loadTransportPayments(true);
-    }
-};
 
 window.closeTransportModal = function(id) {
     const modal = document.getElementById(id);
@@ -799,10 +743,6 @@ window.loadTransportPayments = loadTransportPayments;
 // ---------------------------
 // FILTERS
 // ---------------------------
-['filter-term','filter-year','filter-student','filter-route'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('change', () => loadTransportPayments(false));
-});
 
 // Clear filters button
 document.getElementById('clear-filters')?.addEventListener('click', () => {
