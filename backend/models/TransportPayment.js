@@ -28,8 +28,18 @@ const TransportPaymentSchema = new mongoose.Schema({
     type: String,
     enum: ["Cash", "Mpesa", "Bank Transfer"],
     required: true
+  },
+  balance: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  status: {
+    type: String,
+    enum: ["Unpaid", "Partial", "Paid"],
+    required: true,
+    default: "Unpaid"
   }
 }, { timestamps: true });
 
 module.exports = mongoose.model("TransportPayment", TransportPaymentSchema);
-
