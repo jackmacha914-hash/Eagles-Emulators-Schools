@@ -8,7 +8,7 @@ const TransportPaymentSchema = new mongoose.Schema({
   },
   routeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "TransportRoute",
+    ref: "Route",
     required: true
   },
   amount: {
