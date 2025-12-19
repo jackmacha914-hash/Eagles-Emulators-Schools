@@ -553,26 +553,6 @@ async function loadDropdown(selectId, apiEndpoint, labelField) {
         console.error(`Error loading ${selectId}:`, err);
     }
 }
-    // ---------------------------
-// CLASS → STUDENT FILTERING
-// ---------------------------
-async function loadClassDropdown() {
-    const select = document.getElementById('payment-class');
-    if (!select) return;
-
-    const res = await fetch('/api/students');
-    const students = await res.json();
-
-    const classes = [...new Set(students.map(s => s.class).filter(Boolean))];
-
-    select.innerHTML = `<option value="">Select Class</option>`;
-    classes.sort().forEach(cls => {
-        const option = document.createElement('option');
-        option.value = cls;
-        option.text = cls;
-        select.appendChild(option);
-    });
-}
 
 async function filterStudentsByClass(className) {
     const studentSelect = document.getElementById('payment-student');
@@ -603,15 +583,9 @@ window.openTransportModal = function(id) {
     modal.style.display = 'flex';
 
     // Populate dropdowns
-   if (id === 'paymentsModal') {
-    loadClassDropdown();
+  if (id === 'paymentsModal') {
+    loadDropdown('payment-student', '/api/students', 'name');
     loadDropdown('payment-route', '/api/transport/routes', 'name');
-
-    document.getElementById('payment-student').innerHTML =
-        `<option value="">Select Student</option>`;
-
-    loadTransportPayments(true);
-}
 
         // Filter dropdowns
         loadDropdown('filter-student', '/api/students', 'name');
@@ -625,10 +599,7 @@ window.closeTransportModal = function(id) {
     const modal = document.getElementById(id);
     if (modal) modal.style.display = 'none';
 };
-document.getElementById('payment-class')?.addEventListener('change', e => {
-    if (!e.target.value) return;
-    filterStudentsByClass(e.target.value);
-});
+
 
 // Close modal on click outside
 window.addEventListener('click', e => {
