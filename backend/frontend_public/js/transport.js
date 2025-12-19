@@ -686,46 +686,70 @@ async function loadTransportPayments(forceReload = false) {
     });
 
     // Render table
-    Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
-        const yearRow = document.createElement('tr');
-        yearRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#eee;">Year: ${year}</td>`;
-        tbody.appendChild(yearRow);
+   // 1️⃣ Fetch fees once
+const feesRes = await fetch('/api/transport/fees');
+const feesCache = await feesRes.json(); // [{ routeId: {_id,name}, amount }]
 
-        Object.keys(grouped[year]).forEach(term => {
-            const termRow = document.createElement('tr');
-            termRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#f9f9f9;">Term: ${term}</td>`;
-            tbody.appendChild(termRow);
+// 2️⃣ Create routeId → fee map
+const routeFeeMap = {};
+feesCache.forEach(f => {
+    routeFeeMap[f.routeId._id] = f.amount;
+});
 
-            Object.keys(grouped[year][term]).forEach(studentId => {
-                const studentPayments = grouped[year][term][studentId];
-                const totalBalance = studentPayments.reduce((sum, p) => sum + (p.balance || 0), 0);
+// 3️⃣ Render table with balances
+Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
+    const yearRow = document.createElement('tr');
+    yearRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#eee;">Year: ${year}</td>`;
+    tbody.appendChild(yearRow);
 
-                studentPayments.forEach((p,index) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${index === 0 ? studentMap[studentId] || studentId : ''}</td>
-                        <td>${routeMap[p.routeId] || p.routeId}</td>
-                        <td>${p.amount}</td>
-                        <td>${p.method}</td>
-                        <td>${p.term}</td>
-                        <td>${p.year}</td>
-                        <td>${p.balance}</td>
-                        <td>${p.status}</td>
-                        <td>${new Date(p.createdAt).toLocaleDateString()}</td>
-                        <td><button onclick="deleteTransportPayment('${p._id}')">Delete</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+    Object.keys(grouped[year]).forEach(term => {
+        const termRow = document.createElement('tr');
+        termRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#f9f9f9;">Term: ${term}</td>`;
+        tbody.appendChild(termRow);
 
-                const summaryRow = document.createElement('tr');
-                summaryRow.innerHTML = `
-                    <td colspan="6" style="text-align:right;font-weight:bold;">Total Balance for Student:</td>
-                    <td colspan="4" style="font-weight:bold;">${totalBalance}</td>
-                `;
-                tbody.appendChild(summaryRow);
+        Object.keys(grouped[year][term]).forEach(studentId => {
+            const studentPayments = grouped[year][term][studentId];
+
+            // Compute total paid per route for this student in this term/year
+            const routeTotals = {};
+            studentPayments.forEach(p => {
+                if (!routeTotals[p.routeId]) routeTotals[p.routeId] = 0;
+                routeTotals[p.routeId] += Number(p.amount);
             });
+
+            let totalBalance = 0;
+
+            studentPayments.forEach((p,index) => {
+                const routeFee = routeFeeMap[p.routeId] || 0;
+                const paid = routeTotals[p.routeId];
+                const balance = Math.max(routeFee - paid, 0);
+                totalBalance += balance;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index === 0 ? studentMap[studentId] || studentId : ''}</td>
+                    <td>${routeMap[p.routeId] || p.routeId}</td>
+                    <td>${p.amount}</td>
+                    <td>${p.method}</td>
+                    <td>${p.term}</td>
+                    <td>${p.year}</td>
+                    <td>${balance}</td>
+                    <td>${balance <= 0 ? 'Paid' : (paid>0 ? 'Partial' : 'Unpaid')}</td>
+                    <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+                    <td><button onclick="deleteTransportPayment('${p._id}')">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const summaryRow = document.createElement('tr');
+            summaryRow.innerHTML = `
+                <td colspan="6" style="text-align:right;font-weight:bold;">Total Balance for Student:</td>
+                <td colspan="4" style="font-weight:bold;">${totalBalance}</td>
+            `;
+            tbody.appendChild(summaryRow);
         });
     });
+});
 }
 
 // Make globally accessible
