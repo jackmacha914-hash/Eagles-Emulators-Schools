@@ -2125,50 +2125,77 @@ window.fetch = async (input, init = {}) => {
   <div class="transport-modal-content">
     <span class="close" onclick="closeTransportModal('paymentsModal')">&times;</span>
     <h3>Transport Payments</h3>
+
+    <!-- RECORD PAYMENT -->
     <form class="grid-form">
-      <select id="payment-student">
-        <option>Select Student</option>
+      <select id="payment-student" required>
+        <option value="">Select Student</option>
       </select>
-      <select id="payment-route">
-        <option>Select Route</option>
-      </select>
-      <input type="number" id="payment-amount" placeholder="Amount">
-        <select id="payment-term">
-        <option>Term 1</option>
-      <option>Term 2</option>
-      <option>Term 3</option>
-      </select>
-      <input type="number" id="payment-year" placeholder="Year" value="2025">
 
-      <select id="payment-method">
-        <option>Cash</option>
-        <option>Mpesa</option>
-        <option>Bank Transfer</option>
+      <select id="payment-route" required>
+        <option value="">Select Route</option>
       </select>
-      <button type="button" class="btn full" onclick="saveTransportPayment()">Record Payment</button>
+
+      <input type="number" id="payment-amount" placeholder="Amount" required />
+
+      <select id="payment-term" required>
+        <option value="Term 1">Term 1</option>
+        <option value="Term 2">Term 2</option>
+        <option value="Term 3">Term 3</option>
+      </select>
+
+      <input
+        type="number"
+        id="payment-year"
+        placeholder="Year"
+        value="2025"
+        required
+      />
+
+      <select id="payment-method" required>
+        <option value="Cash">Cash</option>
+        <option value="Mpesa">Mpesa</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+      </select>
+
+      <button
+        type="button"
+        class="btn full"
+        onclick="saveTransportPayment()"
+      >
+        Record Payment
+      </button>
     </form>
-      <input type="number" id="filter-year" placeholder="All Years">
-    <select id="filter-sort">
-        <option value="latest">Latest</option>
-        <option value="oldest">Oldest</option>
-    </select>
-    <button type="button" id="clear-filters" class="btn">Clear Filters</button>
-          <select id="filter-student">
-  <option value="">All Students</option>
-</select>
 
-<select id="filter-route">
-  <option value="">All Routes</option>
-</select>
+    <!-- FILTERS -->
+    <div class="filters">
+      <select id="filter-student">
+        <option value="">All Students</option>
+      </select>
 
-<select id="filter-sort">
-  <option value="latest">Latest First</option>
-  <option value="oldest">Oldest First</option>
-</select>
+      <select id="filter-route">
+        <option value="">All Routes</option>
+      </select>
 
-<button type="button" onclick="exportPaymentsCSV()">Export CSV</button>
-<button type="button" onclick="exportPaymentsExcel()">Export Excel</button>
+      <input type="number" id="filter-year" placeholder="All Years" />
 
+      <select id="filter-sort">
+        <option value="latest">Latest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
+
+      <button type="button" id="clear-filters" class="btn">
+        Clear Filters
+      </button>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="exports">
+      <button type="button" onclick="exportPaymentsCSV()">Export CSV</button>
+      <button type="button" onclick="exportPaymentsExcel()">Export Excel</button>
+    </div>
+
+    <!-- TABLE -->
     <table class="table" id="payment-table">
       <thead>
         <tr>
@@ -2176,14 +2203,17 @@ window.fetch = async (input, init = {}) => {
           <th>Route</th>
           <th>Amount</th>
           <th>Method</th>
+          <th>Term / Year</th>
           <th>Date</th>
-          <th>Actions</th>
+          <th>Balance</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 </div>
+
 
 <!-- Attendance Modal -->
 <div class="transport-modal" id="attendanceModal">
