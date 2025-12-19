@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
     }
 
     const route = await Route.findById(routeId);
-    const routeFee = route?.fee || 0;
+    const routeFee = route?.transportFees || 0;
 
     const previousPayments = await TransportPayment.aggregate([
       {
