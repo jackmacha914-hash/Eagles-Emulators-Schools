@@ -96,6 +96,9 @@ window.openTransportModal = function(id) {
 
     loadTransportPayments(true);
 }
+    if (id === 'feesModal') {
+    loadRoutesDropdown('fees-route'); // or loadDropdown('fees-route','/api/transport/routes','name');
+}
 
 };
 
