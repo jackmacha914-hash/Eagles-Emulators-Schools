@@ -1510,19 +1510,77 @@ li .avatar {
 }
 
 /* Transport Tab Section */
-.transport-modal-content {
-    background:#fff;
-    padding:20px;
-    width:1000px;
-    max-height:90vh; /* Prevent modal from exceeding viewport height */
-    border-radius:6px;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden; /* prevent full modal scroll */
-}
-
-.transport-modal-content.large { width:720px; }
+/* Transport Tab Section */ 
+.transport-actions { 
+display:flex; gap:10px; 
+flex-wrap:wrap; 
+margin-bottom:20px; 
+} 
+.transport-actions 
+.btn { 
+padding:8px 12px; 
+background:#1e88e5; 
+color:#fff; border:none; 
+border-radius:4px; 
+cursor:pointer; 
+} 
+.transport-actions .btn i { 
+margin-right:5px;
+ }
+  .transport-modal {
+   display:none; 
+   position:fixed; 
+   inset:0; background: 
+   rgba(0,0,0,0.45); 
+   justify-content:center; 
+   align-items:center; 
+   z-index:9999; 
+   } 
+   .transport-modal-content { 
+   background:#fff;
+    padding:20px; 
+    width:500px; 
+    border-radius:6px; 
+    position:relative; 
+    } 
+    .transport-modal-content.large { 
+    width:720px; 
+    }
+     .transport-modal .close { 
+     position:absolute; 
+     right:15px; 
+     top:10px; 
+     font-size:22px; 
+     cursor:pointer;
+      } 
+      .grid-form { 
+      display:grid; 
+      gap:10px; 
+      grid-template-columns:repeat(2,1fr); 
+      margin-bottom:15px; 
+      } 
+      .grid-form input, .grid-form select { 
+      padding:8px;
+       border:1px solid #ccc; 
+       border-radius:4px; 
+       font-size:14px; 
+       } 
+       .grid-form button { 
+       grid-column: span 2; 
+       } 
+       .table { 
+       width:100%; 
+       border-collapse:collapse; 
+       margin-top:15px; 
+       } 
+       .table th, .table td { 
+       border:1px solid #ddd; 
+       padding:8px; 
+       font-size:13px; 
+       } 
+       .table th { 
+       background:#f1f1f1; 
+       }
 
 .transport-modal-scrollable {
     flex:1; /* take remaining space inside modal */
