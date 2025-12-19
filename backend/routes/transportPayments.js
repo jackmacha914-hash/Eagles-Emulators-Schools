@@ -11,43 +11,26 @@ router.post("/", async (req, res) => {
   try {
     const { studentId, routeId, amount, term, year, method } = req.body;
 
-    // 1️⃣ Get the fee for the route
-    const route = await Route.findById(routeId);
-    const routeFee = route?.fee || 0;
+    if (!studentId || !routeId || !amount || !term || !year || !method) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
-    // 2️⃣ Sum previous payments for this student, route, term, year
-    const previousPayments = await TransportPayment.aggregate([
-      { $match: { 
-          studentId: mongoose.Types.ObjectId(studentId), 
-          routeId: mongoose.Types.ObjectId(routeId), 
-          term, 
-          year 
-      }},
-      { $group: { _id: null, totalPaid: { $sum: "$amount" } } }
-    ]);
-    const totalPaidBefore = previousPayments[0]?.totalPaid || 0;
-
-    // 3️⃣ Calculate balance and status
-    const balance = routeFee - (totalPaidBefore + amount);
-    const status = balance <= 0 ? "Paid" : (balance < routeFee ? "Partial" : "Unpaid");
-
-    // 4️⃣ Save the payment with balance and status
     const payment = await TransportPayment.create({
       studentId,
       routeId,
       amount,
       term,
       year,
-      method,
-      balance,
-      status
+      method
     });
 
     res.status(201).json(payment);
   } catch (err) {
+    console.error(err);
     res.status(400).json({ error: err.message });
   }
 });
+
 
 /**
  * GET payments (with filters)
