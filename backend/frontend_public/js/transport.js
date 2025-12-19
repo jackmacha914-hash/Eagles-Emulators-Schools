@@ -226,114 +226,6 @@ window.addEventListener('click', e => {
         loadRoutes();
     };
 
-async function loadTransportPayments(forceReload = false) {
-    const tbody = document.querySelector('#payment-table tbody');
-    if (!tbody) return;
-
-    // Blur filter inputs
-    ["filter-term", "filter-year", "filter-student", "filter-route"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.blur();
-    });
-
-    const termFilter = document.getElementById("filter-term")?.value.trim();
-    const yearFilter = document.getElementById("filter-year")?.value.trim();
-    const studentFilter = document.getElementById("filter-student")?.value;
-    const routeFilter = document.getElementById("filter-route")?.value;
-    const sortOrder = document.getElementById("filter-sort")?.value || "latest";
-
-    try {
-        // Load payments
-        if (forceReload || transportPaymentsCache.length === 0) {
-            const res = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments');
-            transportPaymentsCache = await res.json();
-        }
-
-        // Load fees for balance calculation
-        const feesRes = await fetch('https://eagles-emulators-schools.onrender.com/api/transport/fees');
-        const feesCache = await feesRes.json(); // [{ routeId, amount }]
-
-        let payments = [...transportPaymentsCache];
-
-        // Apply filters
-        payments = payments.filter(p => {
-            const termMatch = termFilter ? p.term === termFilter : true;
-            const yearMatch = yearFilter ? String(p.year) === yearFilter : true;
-            const studentMatch = studentFilter ? p.studentId === studentFilter : true;
-            const routeMatch = routeFilter ? p.routeId === routeFilter : true;
-            return termMatch && yearMatch && studentMatch && routeMatch;
-        });
-
-        // Sort
-        payments.sort((a, b) => {
-            const da = new Date(a.createdAt || a.date);
-            const db = new Date(b.createdAt || b.date);
-            return sortOrder === "oldest" ? da - db : db - da;
-        });
-
-        const studentSelect = document.getElementById("payment-student");
-        const routeSelect = document.getElementById("payment-route");
-
-        const studentMap = {};
-        [...studentSelect.options].forEach(o => o.value && (studentMap[o.value] = o.text));
-
-        const routeMap = {};
-        [...routeSelect.options].forEach(o => o.value && (routeMap[o.value] = o.text));
-
-        // Group payments by student + route + term + year
-        const grouped = {};
-        payments.forEach(p => {
-            const key = `${p.studentId}-${p.routeId}-${p.term}-${p.year}`;
-            if (!grouped[key]) grouped[key] = 0;
-            grouped[key] += Number(p.amount);
-        });
-
-        tbody.innerHTML = Object.keys(grouped).map(key => {
-            const [studentId, routeId, term, year] = key.split("-");
-            const paid = grouped[key];
-            const feeObj = feesCache.find(f => f.routeId === routeId);
-            const totalFee = feeObj ? Number(feeObj.amount) : 0;
-            const balance = totalFee - paid;
-            let status = "Unpaid";
-            if (paid >= totalFee && totalFee > 0) status = "Paid";
-            else if (paid > 0) status = "Partial";
-
-            return `
-                <tr>
-                    <td>${studentMap[studentId] || '-'}</td>
-                    <td>${routeMap[routeId] || '-'}</td>
-                    <td>${paid}</td>
-                    <td>${totalFee}</td>
-                    <td>${balance}</td>
-                    <td>${status}</td>
-                    <td>${term} / ${year}</td>
-                </tr>
-            `;
-        }).join('');
-
-    } catch (err) {
-        console.error("Error loading payments:", err);
-    }
-}
-
-
-// Make globally accessible
-window.loadTransportPayments = loadTransportPayments;
-
-
-    window.deleteTransportPayment = async function(id) {
-    if (!confirm('Delete this payment?')) return;
-
-    try {
-        await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/payments/${id}`, {
-            method: 'DELETE'
-        });
-        loadTransportPayments(); // refresh the table
-    } catch (err) {
-        console.error('Error deleting payment:', err);
-    }
-};
-
 
     // ---------------------------
     // DRIVER FUNCTIONS
@@ -452,159 +344,240 @@ window.saveFee = async function () {
 };
     // ---------------------------
 // TRANSPORT PAYMENTS
+// --------------------------
+
 // ---------------------------
-window.saveTransportPayment = async function () {
+// UTILITY FUNCTIONS
+// ---------------------------
+async function loadDropdown(selectId, apiEndpoint, labelField) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const res = await fetch(apiEndpoint);
+        const items = await res.json();
+
+        select.innerHTML = `<option value="">Select</option>`;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item._id;
+            option.text = item[labelField];
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error(`Error loading ${selectId}:`, err);
+    }
+}
+
+// ---------------------------
+// MODAL HANDLING
+// ---------------------------
+window.openTransportModal = function(id) {
+    document.querySelectorAll('.transport-modal').forEach(m => m.style.display = 'none');
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    // Populate dropdowns
+    if (id === 'paymentsModal') {
+        loadDropdown('payment-student', '/api/students', 'name');
+        loadDropdown('payment-route', '/api/transport/routes', 'name');
+
+        // Filter dropdowns
+        loadDropdown('filter-student', '/api/students', 'name');
+        loadDropdown('filter-route', '/api/transport/routes', 'name');
+
+        loadTransportPayments(true);
+    }
+};
+
+window.closeTransportModal = function(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = 'none';
+};
+
+// Close modal on click outside
+window.addEventListener('click', e => {
+    if (e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
+});
+
+// ---------------------------
+// TRANSPORT PAYMENTS LOGIC
+// ---------------------------
+window.saveTransportPayment = async function() {
     const studentId = document.getElementById('payment-student').value;
     const routeId = document.getElementById('payment-route').value;
-    const amount = Number(document.getElementById('payment-amount').value);
+    const amount = document.getElementById('payment-amount').value;
     const term = document.getElementById('payment-term').value;
-    const year = Number(document.getElementById('payment-year').value);
+    const year = document.getElementById('payment-year').value;
     const method = document.getElementById('payment-method').value;
 
     if (!studentId || !routeId || !amount || !term || !year || !method) {
-        alert('Please select student, route and fill all fields');
+        alert('Please fill all payment fields');
         return;
     }
 
     try {
-        const res = await fetch(
-          'https://eagles-emulators-schools.onrender.com/api/transport/payments',
-          {
+        const payload = {
+            studentId,
+            routeId,
+            amount: Number(amount),
+            term,
+            year: Number(year),
+            method
+        };
+
+        console.log("Payload sent:", payload);
+
+        await fetch('/api/transport/payments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentId,
-                routeId,
-                amount,
-                term,
-                year,
-                method
-            })
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            console.error('Backend error:', data);
-            alert(data.error || 'Payment failed');
-            return;
-        }
+            body: JSON.stringify(payload)
+        });
 
         alert('Payment saved successfully');
         loadTransportPayments(true);
-
     } catch (err) {
-        console.error('Network error:', err);
-        alert('Server unreachable');
+        console.error('Backend error:', err);
+        alert('Failed to save payment');
+    }
+};
+
+window.deleteTransportPayment = async function(id) {
+    if (!confirm('Delete this payment?')) return;
+    try {
+        await fetch(`/api/transport/payments/${id}`, { method: 'DELETE' });
+        loadTransportPayments(true);
+    } catch (err) {
+        console.error('Error deleting payment:', err);
     }
 };
 
 // ---------------------------
-// LIVE PAYMENT FILTERING
+// LOAD TRANSPORT PAYMENTS WITH GROUPING BY YEAR → TERM
 // ---------------------------
-const filterTerm = document.getElementById("filter-term");
-const filterYear = document.getElementById("filter-year");
-const filterStudent = document.getElementById("filter-student");
-const filterRoute = document.getElementById("filter-route");
-const filterSort = document.getElementById("filter-sort");
-
-const filterElements = [filterTerm, filterYear, filterStudent, filterRoute, filterSort];
-
-filterElements.forEach(el => {
-    if (el) {
-        el.addEventListener("change", () => {
-            loadTransportPayments(false);
-        });
-        // For number input (year), also listen to input events
-        if (el.type === "number") {
-            el.addEventListener("input", () => {
-                loadTransportPayments(false);
-            });
-        }
+async function loadTransportPayments(forceReload = false) {
+    if (forceReload || transportPaymentsCache.length === 0) {
+        const res = await fetch('/api/transport/payments');
+        transportPaymentsCache = await res.json();
     }
-});
 
-    //CLEAR FILTERS
-const clearFiltersBtn = document.getElementById("clear-filters");
-if (clearFiltersBtn) {
-    clearFiltersBtn.addEventListener("click", () => {
-        const filterTerm = document.getElementById("filter-term");
-        const filterYear = document.getElementById("filter-year");
-        const filterStudent = document.getElementById("filter-student");
-        const filterRoute = document.getElementById("filter-route");
-        const filterSort = document.getElementById("filter-sort");
+    const tbody = document.querySelector('#payment-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
-        if (filterTerm) filterTerm.value = "";
-        if (filterYear) filterYear.value = "";
-        if (filterStudent) filterStudent.value = "";
-        if (filterRoute) filterRoute.value = "";
-        if (filterSort) filterSort.value = "latest";
+    // Filters
+    const termFilter = document.getElementById('filter-term')?.value;
+    const yearFilter = document.getElementById('filter-year')?.value;
+    const studentFilter = document.getElementById('filter-student')?.value;
+    const routeFilter = document.getElementById('filter-route')?.value;
 
-        loadTransportPayments(false);
+    // Filter payments
+    let payments = transportPaymentsCache.filter(p =>
+        (!termFilter || p.term === termFilter) &&
+        (!yearFilter || String(p.year) === yearFilter) &&
+        (!studentFilter || p.studentId === studentFilter) &&
+        (!routeFilter || p.routeId === routeFilter)
+    );
+
+    // Maps for dropdown names
+    const studentMap = {};
+    document.getElementById('payment-student')?.querySelectorAll('option').forEach(o => { if (o.value) studentMap[o.value] = o.text; });
+    const routeMap = {};
+    document.getElementById('payment-route')?.querySelectorAll('option').forEach(o => { if (o.value) routeMap[o.value] = o.text; });
+
+    // Group by year → term → student
+    const grouped = {};
+    payments.forEach(p => {
+        const year = p.year;
+        const term = p.term;
+        const student = p.studentId;
+
+        if (!grouped[year]) grouped[year] = {};
+        if (!grouped[year][term]) grouped[year][term] = {};
+        if (!grouped[year][term][student]) grouped[year][term][student] = [];
+
+        grouped[year][term][student].push(p);
+    });
+
+    // Render table
+    Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
+        const yearRow = document.createElement('tr');
+        yearRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#eee;">Year: ${year}</td>`;
+        tbody.appendChild(yearRow);
+
+        Object.keys(grouped[year]).forEach(term => {
+            const termRow = document.createElement('tr');
+            termRow.innerHTML = `<td colspan="10" style="font-weight:bold;background:#f9f9f9;">Term: ${term}</td>`;
+            tbody.appendChild(termRow);
+
+            Object.keys(grouped[year][term]).forEach(studentId => {
+                const studentPayments = grouped[year][term][studentId];
+                const totalBalance = studentPayments.reduce((sum, p) => sum + (p.balance || 0), 0);
+
+                studentPayments.forEach((p,index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index === 0 ? studentMap[studentId] || studentId : ''}</td>
+                        <td>${routeMap[p.routeId] || p.routeId}</td>
+                        <td>${p.amount}</td>
+                        <td>${p.method}</td>
+                        <td>${p.term}</td>
+                        <td>${p.year}</td>
+                        <td>${p.balance}</td>
+                        <td>${p.status}</td>
+                        <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+                        <td><button onclick="deleteTransportPayment('${p._id}')">Delete</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const summaryRow = document.createElement('tr');
+                summaryRow.innerHTML = `
+                    <td colspan="6" style="text-align:right;font-weight:bold;">Total Balance for Student:</td>
+                    <td colspan="4" style="font-weight:bold;">${totalBalance}</td>
+                `;
+                tbody.appendChild(summaryRow);
+            });
+        });
     });
 }
 
+// Make globally accessible
+window.loadTransportPayments = loadTransportPayments;
+
+// ---------------------------
+// FILTERS
+// ---------------------------
+['filter-term','filter-year','filter-student','filter-route'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', () => loadTransportPayments(false));
+});
+
+// Clear filters button
+document.getElementById('clear-filters')?.addEventListener('click', () => {
+    ['filter-term','filter-year','filter-student','filter-route'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = '';
+    });
+    loadTransportPayments(false);
+});
 
     // ---------------------------
     // INITIAL LOAD
     // ---------------------------
+    // Load buses, routes, drivers, student assignments
     loadBuses();
     loadRoutes();
     loadDrivers();
     loadStudentAssignments();
+
+    // Load transport payments with grouping / balance logic
     loadTransportPayments(true);
+
+    // Load dropdowns for payments modal
+    loadDropdown('payment-student','/api/students','name');
+    loadDropdown('payment-route','/api/transport/routes','name');
 });
+
 console.log("transport.js loaded");
-window.exportPaymentsCSV = function () {
-    if (!transportPaymentsCache.length) return alert("No payments");
-
-    let csv = "Student,Route,Amount,Method,Term,Year,Date,Balance,Status\n";
-
-    transportPaymentsCache.forEach(p => {
-        csv += `"${p.studentId}","${p.routeId}",${p.amount},"${p.method}",${p.term},${p.year},${new Date(p.createdAt).toLocaleDateString()},${p.balance},${p.status}\n`;
-    });
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "transport_payments.csv";
-    a.click();
-};
-
-window.exportPaymentsExcel = function () {
-    if (!transportPaymentsCache.length) return alert("No payments");
-
-    let table = `<table>
-      <tr>
-        <th>Student</th><th>Route</th><th>Amount</th>
-        <th>Method</th><th>Term</th><th>Year</th>
-        <th>Date</th><th>Balance</th><th>Status</th>
-      </tr>`;
-
-    transportPaymentsCache.forEach(p => {
-        table += `
-        <tr>
-          <td>${p.studentId}</td>
-          <td>${p.routeId}</td>
-          <td>${p.amount}</td>
-          <td>${p.method}</td>
-          <td>${p.term}</td>
-          <td>${p.year}</td>
-          <td>${new Date(p.createdAt).toLocaleDateString()}</td>
-          <td>${p.balance != null ? p.balance : '-'}</td>
-          <td>${p.status || '-'}</td>
-        </tr>`;
-    });
-
-    table += "</table>";
-
-    const blob = new Blob([table], { type: "application/vnd.ms-excel" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "transport_payments.xls";
-    a.click();
-};
-
-
-
