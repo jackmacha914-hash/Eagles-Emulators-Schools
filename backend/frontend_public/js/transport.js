@@ -456,37 +456,50 @@ window.saveFee = async function () {
 window.saveTransportPayment = async function () {
     const studentId = document.getElementById('payment-student').value;
     const routeId = document.getElementById('payment-route').value;
-    const amount = document.getElementById('payment-amount').value;
+    const amount = Number(document.getElementById('payment-amount').value);
     const term = document.getElementById('payment-term').value;
-    const year = document.getElementById('payment-year').value;
+    const year = Number(document.getElementById('payment-year').value);
     const method = document.getElementById('payment-method').value;
 
     if (!studentId || !routeId || !amount || !term || !year || !method) {
-        alert('Please fill all payment fields');
+        alert('Please select student, route and fill all fields');
         return;
     }
 
     try {
-        await fetch('https://eagles-emulators-schools.onrender.com/api/transport/payments', {
+        const res = await fetch(
+          'https://eagles-emulators-schools.onrender.com/api/transport/payments',
+          {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 studentId,
                 routeId,
-                amount: Number(amount),
+                amount,
                 term,
-                year: Number(year),
+                year,
                 method
             })
-        });
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            console.error('Backend error:', data);
+            alert(data.error || 'Payment failed');
+            return;
+        }
 
         alert('Payment saved successfully');
-        loadTransportPayments();
+        loadTransportPayments(true);
+
     } catch (err) {
-        console.error('Error saving payment:', err);
-        alert('Failed to save payment');
+        console.error('Network error:', err);
+        alert('Server unreachable');
     }
 };
+
 // ---------------------------
 // LIVE PAYMENT FILTERING
 // ---------------------------
