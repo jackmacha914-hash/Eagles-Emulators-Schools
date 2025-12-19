@@ -1540,6 +1540,8 @@ margin-right:5px;
    background:#fff;
     padding:20px; 
     width:500px; 
+    max-height: 80vh; /* max height of modal */
+    overflow-y: auto;
     border-radius:6px; 
     position:relative; 
     } 
