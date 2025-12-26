@@ -99,6 +99,10 @@ window.openTransportModal = function(id) {
     if (id === 'feesModal') {
     loadRoutesDropdown('fees-route'); // or loadDropdown('fees-route','/api/transport/routes','name');
 }
+    if (id === 'attendanceModal') {
+    loadRoutesDropdown('attendance-route');
+    loadAttendanceTable(); // optional but recommended
+}
 
 };
 
