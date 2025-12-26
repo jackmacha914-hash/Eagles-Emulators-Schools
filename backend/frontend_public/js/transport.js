@@ -697,31 +697,44 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     //------------------------------
     //TRANSPORT ATTENDANCE
     //------------------------------
-  async function loadAttendanceStudents(routeId) {
+ async function loadAttendanceStudents(routeId) {
     const tbody = document.querySelector('#attendance-table tbody');
     tbody.innerHTML = '';
 
     try {
+        // 1️⃣ Get assignments for selected route
         const res = await fetch(
             `https://eagles-emulators-schools.onrender.com/api/transport/assignments?routeId=${routeId}`
         );
-
         const assignments = await res.json();
         if (!assignments.length) return;
 
-        // Set bus
+        // 2️⃣ Fetch students
+        const studentRes = await fetch(
+            `https://eagles-emulators-schools.onrender.com/api/students`
+        );
+        const students = await studentRes.json();
+
+        // Create map: studentId → name
+        const studentMap = {};
+        students.forEach(s => {
+            studentMap[s._id] = s.name;
+        });
+
+        // 3️⃣ Set bus name (from first assignment)
         document.getElementById('attendance-bus').value =
             assignments[0].busId?.number || '';
 
+        // 4️⃣ Populate table
         assignments.forEach((a, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${a.studentId?.name || '-'}</td>
+                <td>${studentMap[a.studentId] || 'Unknown'}</td>
                 <td>${a.routeId?.name || '-'}</td>
                 <td>${a.busId?.number || '-'}</td>
                 <td style="text-align:center">
-                    <input type="checkbox" data-student-id="${a.studentId?._id}" />
+                    <input type="checkbox" data-student-id="${a.studentId}" />
                 </td>
             `;
             tbody.appendChild(tr);
@@ -731,6 +744,7 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
         console.error('Error loading attendance students:', err);
     }
 }
+
 
 
 //---------------------------------
