@@ -730,7 +730,7 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${studentMap[a.studentId] || a.studentId}</td>
-                <td>${routeMap[a.routeId] || a.routeId}</td>
+                <td>${a.routeId?.name || '-'}</td>
                 <td>${a.busId?.number || '-'}</td>
                 <td style="text-align:center">
                     <input type="checkbox" data-student-id="${a.studentId}" />
