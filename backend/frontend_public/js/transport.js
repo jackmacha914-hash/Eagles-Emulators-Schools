@@ -697,33 +697,48 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     //------------------------------
     //TRANSPORT ATTENDANCE
     //------------------------------
-    async function loadAttendanceStudents(routeId) {
+   async function loadAttendanceStudents(routeId) {
     const tbody = document.querySelector('#attendance-table tbody');
     tbody.innerHTML = ''; // clear table
 
     try {
-        // Fetch the assignment for this route
+        // 1️⃣ Fetch assignments
         const res = await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/assignments?routeId=${routeId}`);
-        const assignments = await res.json(); // array of assignments { studentId, busId, routeId }
+        const assignments = await res.json(); // [{ studentId: "id", busId: "id", routeId: "id" }, ...]
 
-        // Set Bus info (take first assignment's bus)
+        if (!assignments.length) return;
+
+        // 2️⃣ Fetch all students (or filter by IDs in assignments)
+        const studentRes = await fetch(`https://eagles-emulators-schools.onrender.com/api/students`);
+        const students = await studentRes.json(); // [{ _id, name }, ...]
+        const studentMap = {};
+        students.forEach(s => studentMap[s._id] = s.name);
+
+        // 3️⃣ Fetch routes (optional if needed)
+        const routeRes = await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/routes`);
+        const routes = await routeRes.json();
+        const routeMap = {};
+        routes.forEach(r => routeMap[r._id] = r.name);
+
+        // 4️⃣ Set Bus info (take first assignment's bus)
         const busName = assignments[0]?.busId?.number || '';
         document.getElementById('attendance-bus').value = busName;
 
-        // Populate table
+        // 5️⃣ Populate table
         assignments.forEach((a, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${a.studentId.name}</td>
-                <td>${a.routeId.name}</td>
+                <td>${studentMap[a.studentId] || a.studentId}</td>
+                <td>${routeMap[a.routeId] || a.routeId}</td>
                 <td>${a.busId?.number || '-'}</td>
                 <td style="text-align:center">
-                    <input type="checkbox" data-student-id="${a.studentId._id}" />
+                    <input type="checkbox" data-student-id="${a.studentId}" />
                 </td>
             `;
             tbody.appendChild(tr);
         });
+
     } catch (err) {
         console.error('Error loading attendance students:', err);
     }
