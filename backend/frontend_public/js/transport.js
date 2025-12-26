@@ -782,6 +782,55 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     }
 }
 
+
+    window.saveTransportAttendance = async function () {
+    const date = document.getElementById('attendance-date').value;
+    const routeId = document.getElementById('attendance-route').value;
+
+    if (!date || !routeId) {
+        alert('Please select date and route');
+        return;
+    }
+
+    const attendance = [];
+
+    document
+        .querySelectorAll('#attendance-table tbody input[type="checkbox"]')
+        .forEach(cb => {
+            attendance.push({
+                studentId: cb.dataset.studentId,
+                present: cb.checked
+            });
+        });
+
+    if (!attendance.length) {
+        alert('No students loaded');
+        return;
+    }
+
+    try {
+        await fetch(
+            'https://eagles-emulators-schools.onrender.com/api/transport/attendance',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date,
+                    routeId,
+                    attendance
+                })
+            }
+        );
+
+        alert('Attendance saved successfully ✅');
+        closeTransportModal('attendanceModal');
+
+    } catch (err) {
+        console.error('Error saving attendance:', err);
+        alert('Failed to save attendance');
+    }
+};
+
     // ---------------------------
     // INITIAL LOAD
     // ---------------------------
