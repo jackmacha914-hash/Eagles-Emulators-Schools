@@ -1597,3 +1597,37 @@ margin-right:5px;
     background:#f1f1f1;
     z-index:1;
 }
+
+/* Attendance Transport modal *\
+.attendance-table-wrapper {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.attendance-controls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.attendance-controls .form-row {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+.attendance-controls input,
+.attendance-controls select {
+    padding: 7px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.attendance-footer {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
