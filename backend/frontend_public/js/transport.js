@@ -328,94 +328,19 @@ window.addEventListener('click', e => {
 // --------------------------
 
 // ---------------------------
-// UTILITY FUNCTIONS
-// ---------------------------
-async function loadDropdown(selectId, apiEndpoint, labelField) {
-    const select = document.getElementById(selectId);
-    if (!select) return;
-
-    try {
-        const res = await fetch(apiEndpoint);
-        const items = await res.json();
-
-        select.innerHTML = `<option value="">Select</option>`;
-        items.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item._id;
-            option.text = item[labelField];
-            select.appendChild(option);
-        });
-    } catch (err) {
-        console.error(`Error loading ${selectId}:`, err);
-    }
-}
 
 // ---------------------------
 // MODAL HANDLING
 // ---------------------------
 
 
-window.closeTransportModal = function(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.style.display = 'none';
-};
 
 // Close modal on click outside
 window.addEventListener('click', e => {
     if (e.target.classList.contains('transport-modal')) e.target.style.display = 'none';
 });
 
-// ---------------------------
-// TRANSPORT PAYMENTS LOGIC
-// ---------------------------
-window.saveTransportPayment = async function() {
-    const studentId = document.getElementById('payment-student').value;
-    const routeId = document.getElementById('payment-route').value;
-    const amount = document.getElementById('payment-amount').value;
-    const term = document.getElementById('payment-term').value;
-    const year = document.getElementById('payment-year').value;
-    const method = document.getElementById('payment-method').value;
 
-    if (!studentId || !routeId || !amount || !term || !year || !method) {
-        alert('Please fill all payment fields');
-        return;
-    }
-
-    try {
-        const payload = {
-            studentId,
-            routeId,
-            amount: Number(amount),
-            term,
-            year: Number(year),
-            method
-        };
-
-        console.log("Payload sent:", payload);
-
-        await fetch('/api/transport/payments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        alert('Payment saved successfully');
-        loadTransportPayments(true);
-    } catch (err) {
-        console.error('Backend error:', err);
-        alert('Failed to save payment');
-    }
-};
-
-window.deleteTransportPayment = async function(id) {
-    if (!confirm('Delete this payment?')) return;
-    try {
-        await fetch(`/api/transport/payments/${id}`, { method: 'DELETE' });
-        loadTransportPayments(true);
-    } catch (err) {
-        console.error('Error deleting payment:', err);
-    }
-};
 
 // ---------------------------
 // LOAD TRANSPORT PAYMENTS WITH GROUPING BY YEAR → TERM
@@ -465,7 +390,8 @@ async function loadTransportPayments(forceReload = false) {
     });
 
     // Render table
-     // ---------------------------
+     
+// ---------------------------
 // TRANSPORT FEES
 // ---------------------------
 window.saveFee = async function () {
@@ -491,6 +417,7 @@ window.saveFee = async function () {
         alert('Failed to save fee');
     }
 };
+
     // ---------------------------
 // TRANSPORT PAYMENTS
 // --------------------------
@@ -542,10 +469,6 @@ async function filterStudentsByClass(className) {
 // ---------------------------
 
 
-window.closeTransportModal = function(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.style.display = 'none';
-};
 
 
 // Close modal on click outside
@@ -768,9 +691,9 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     // Load transport payments with grouping / balance logic
     loadTransportPayments(true);
 
-    // Load dropdowns for payments modal
-    loadDropdown('payment-student','/api/students','name');
-    loadDropdown('payment-route','/api/transport/routes','name');
+loadStudentsDropdown('payment-student');
+loadRoutesDropdown('payment-route');
+
 });
 
 console.log("transport.js loaded");
