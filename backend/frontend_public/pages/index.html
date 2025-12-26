@@ -2253,9 +2253,18 @@ window.fetch = async (input, init = {}) => {
                    <th>Present</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <td style="text-align:center">
+                  <input type="checkbox" data-student-id="STUDENT_ID" />
+                </td>
+
+            </tbody>
         </table>
         </div>
+    </div>
+    <div class="attendance-footer">
+    <button class="btn" onclick="saveTransportAttendance()">Save Attendance</button>
+    <button class="btn btn-secondary" onclick="closeTransportModal('attendanceModal')">Close</button>
     </div>
 </div>
 
