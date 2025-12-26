@@ -99,9 +99,20 @@ window.openTransportModal = function(id) {
     if (id === 'feesModal') {
     loadRoutesDropdown('fees-route'); // or loadDropdown('fees-route','/api/transport/routes','name');
 }
-    if (id === 'attendanceModal') {
+  if (id === 'attendanceModal') {
     loadRoutesDropdown('attendance-route');
-    loadAttendanceTable(); // optional but recommended
+
+    // When a route is selected, load its students and bus
+    const routeSelect = document.getElementById('attendance-route');
+    routeSelect.addEventListener('change', async function() {
+        const routeId = this.value;
+        if (routeId) {
+            await loadAttendanceStudents(routeId);
+        } else {
+            document.getElementById('attendance-bus').value = '';
+            document.querySelector('#attendance-table tbody').innerHTML = '';
+        }
+    });
 }
 
 };
@@ -682,6 +693,76 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     });
     loadTransportPayments(false);
 });
+
+    //------------------------------
+    //TRANSPORT ATTENDANCE
+    //------------------------------
+    async function loadAttendanceStudents(routeId) {
+    const tbody = document.querySelector('#attendance-table tbody');
+    tbody.innerHTML = ''; // clear table
+
+    try {
+        // Fetch the assignment for this route
+        const res = await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/assignments?routeId=${routeId}`);
+        const assignments = await res.json(); // array of assignments { studentId, busId, routeId }
+
+        // Set Bus info (take first assignment's bus)
+        const busName = assignments[0]?.busId?.number || '';
+        document.getElementById('attendance-bus').value = busName;
+
+        // Populate table
+        assignments.forEach((a, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${a.studentId.name}</td>
+                <td>${a.routeId.name}</td>
+                <td>${a.busId?.number || '-'}</td>
+                <td style="text-align:center">
+                    <input type="checkbox" data-student-id="${a.studentId._id}" />
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error('Error loading attendance students:', err);
+    }
+}
+
+//---------------------------------
+    //SAVE TRANSPORT ATTENDANCE
+    //-----------------------------
+    async function saveTransportAttendance() {
+    const date = document.getElementById('attendance-date').value;
+    const routeId = document.getElementById('attendance-route').value;
+
+    if (!date || !routeId) {
+        alert('Please select date and route');
+        return;
+    }
+
+    const checkboxes = document.querySelectorAll('#attendance-table tbody input[type="checkbox"]');
+    const attendanceData = Array.from(checkboxes).map(cb => ({
+        studentId: cb.dataset.studentId,
+        routeId,
+        date,
+        present: cb.checked
+    }));
+
+    try {
+        await fetch('https://eagles-emulators-schools.onrender.com/api/transport/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(attendanceData)
+        });
+
+        alert('Attendance saved successfully!');
+        closeTransportModal('attendanceModal');
+    } catch (err) {
+        console.error('Error saving attendance:', err);
+        alert('Failed to save attendance');
+    }
+}
 
     // ---------------------------
     // INITIAL LOAD
