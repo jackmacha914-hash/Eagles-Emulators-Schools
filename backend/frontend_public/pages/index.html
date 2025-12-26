@@ -2222,16 +2222,40 @@ window.fetch = async (input, init = {}) => {
     <div class="transport-modal-content large">
         <span class="close" onclick="closeTransportModal('attendanceModal')">&times;</span>
         <h3>Transport Attendance</h3>
+        <div class="attendance-controls">
+    <div class="form-row">
+        <label>Date</label>
+        <input type="date" id="attendance-date" />
+    </div>
+
+    <div class="form-row">
+        <label>Route</label>
+        <select id="attendance-route">
+            <option value="">Select Route</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Bus</label>
+        <input type="text" id="attendance-bus" readonly />
+    </div>
+
+    <button class="btn" onclick="loadTransportAttendance()">Load Students</button>
+</div>
+        <div class="attendance-table-wrapper">
         <table class="table" id="attendance-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Bus</th>
-                    <th>Present</th>
+                   <th>#</th>
+                   <th>Student</th>
+                   <th>Route</th>
+                   <th>Bus</th>
+                   <th>Present</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+        </div>
     </div>
 </div>
 
