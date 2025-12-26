@@ -697,43 +697,31 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
     //------------------------------
     //TRANSPORT ATTENDANCE
     //------------------------------
-   async function loadAttendanceStudents(routeId) {
+  async function loadAttendanceStudents(routeId) {
     const tbody = document.querySelector('#attendance-table tbody');
-    tbody.innerHTML = ''; // clear table
+    tbody.innerHTML = '';
 
     try {
-        // 1️⃣ Fetch assignments
-        const res = await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/assignments?routeId=${routeId}`);
-        const assignments = await res.json(); // [{ studentId: "id", busId: "id", routeId: "id" }, ...]
+        const res = await fetch(
+            `https://eagles-emulators-schools.onrender.com/api/transport/assignments?routeId=${routeId}`
+        );
 
+        const assignments = await res.json();
         if (!assignments.length) return;
 
-        // 2️⃣ Fetch all students (or filter by IDs in assignments)
-        const studentRes = await fetch(`https://eagles-emulators-schools.onrender.com/api/students`);
-        const students = await studentRes.json(); // [{ _id, name }, ...]
-        const studentMap = {};
-        students.forEach(s => studentMap[s._id] = s.name);
+        // Set bus
+        document.getElementById('attendance-bus').value =
+            assignments[0].busId?.number || '';
 
-        // 3️⃣ Fetch routes (optional if needed)
-        const routeRes = await fetch(`https://eagles-emulators-schools.onrender.com/api/transport/routes`);
-        const routes = await routeRes.json();
-        const routeMap = {};
-        routes.forEach(r => routeMap[r._id] = r.name);
-
-        // 4️⃣ Set Bus info (take first assignment's bus)
-        const busName = assignments[0]?.busId?.number || '';
-        document.getElementById('attendance-bus').value = busName;
-
-        // 5️⃣ Populate table
         assignments.forEach((a, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${studentMap[a.studentId] || a.studentId}</td>
+                <td>${a.studentId?.name || '-'}</td>
                 <td>${a.routeId?.name || '-'}</td>
                 <td>${a.busId?.number || '-'}</td>
                 <td style="text-align:center">
-                    <input type="checkbox" data-student-id="${a.studentId}" />
+                    <input type="checkbox" data-student-id="${a.studentId?._id}" />
                 </td>
             `;
             tbody.appendChild(tr);
@@ -743,6 +731,7 @@ document.getElementById('clear-filters')?.addEventListener('click', () => {
         console.error('Error loading attendance students:', err);
     }
 }
+
 
 //---------------------------------
     //SAVE TRANSPORT ATTENDANCE
