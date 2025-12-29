@@ -27,6 +27,9 @@ class AccountantFees {
         this.feesClassFilter = document.getElementById('fees-class-filter');
         this.resetFiltersBtn = document.getElementById('reset-filters');
         this.selectAllCheckbox = document.getElementById('select-all-fees');
+        this.feesTermFilter = document.getElementById('fees-term-filter');
+        this.feesYearFilter = document.getElementById('fees-year-filter');
+
         
         this.initialize();
     }
@@ -138,6 +141,20 @@ class AccountantFees {
                 this.loadFeesWithFilters();
             });
         }
+        // Term filter
+       if (this.feesTermFilter) {
+       this.feesTermFilter.addEventListener('change', () => {
+        this.loadFeesWithFilters();
+    });
+}
+
+// Academic year filter
+if (this.feesYearFilter) {
+    this.feesYearFilter.addEventListener('change', () => {
+        this.loadFeesWithFilters();
+    });
+}
+
 
         // Handle button clicks using event delegation
         document.addEventListener('click', (e) => {
@@ -196,14 +213,20 @@ class AccountantFees {
             const searchTerm = this.feeSearch ? this.feeSearch.value.trim() : '';
             const statusFilter = this.feesStatusFilter ? this.feesStatusFilter.value : '';
             const classFilter = this.feesClassFilter ? this.feesClassFilter.value : '';
+            const termFilter = this.feesTermFilter ? this.feesTermFilter.value : '';
+            const yearFilter = this.feesYearFilter ? this.feesYearFilter.value : '';
+
             
             // Build query parameters
             const params = new URLSearchParams();
             params.append('populate', 'student,payments');
             
-            if (searchTerm) params.append('search', searchTerm);
-            if (statusFilter) params.append('status', statusFilter);
-            if (classFilter && classFilter !== 'All Classes') params.append('class', classFilter);
+           if (searchTerm) params.append('search', searchTerm);
+           if (statusFilter) params.append('status', statusFilter);
+           if (classFilter && classFilter !== 'All Classes') params.append('class', classFilter);
+           if (termFilter) params.append('academicTerm', termFilter);
+           if (yearFilter) params.append('academicYear', yearFilter);
+
             
             // Make API request to get fees with populated student data
             const apiUrl = `https://eagles-emulators-schools.onrender.com/api/fees?${params.toString()}`;
