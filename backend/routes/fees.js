@@ -18,6 +18,16 @@ router.get('/', async (req, res) => {
     if (req.query.status) {
       query.status = req.query.status;
     }
+    // Add academic term filter if provided
+   if (req.query.academicTerm) {
+   query.academicTerm = req.query.academicTerm;
+    }
+
+// Add academic year filter if provided
+    if (req.query.academicYear) {
+     query.academicYear = req.query.academicYear;
+      }
+
     
     // Add class filter if provided
     if (req.query.class && req.query.class !== 'All Classes') {
