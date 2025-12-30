@@ -574,6 +574,11 @@ if (this.feesYearFilter) {
             status = 'Overdue';
             statusClass = 'bg-red-100 text-red-800';
         }
+
+
+        const academicYear = fee.academicYear || '-';
+        const academicTerm = fee.academicTerm || '-';
+
         
         // Create row HTML
         row.innerHTML = `
@@ -587,6 +592,13 @@ if (this.feesYearFilter) {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${className}
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+               ${academicYear}
+             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              ${academicTerm}
+             </td>
+
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 ${totalFees > 0 ? formatCurrency(totalFees) : 'N/A'}
             </td>
